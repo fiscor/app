@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+   <link rel="icon" type="image/png" href="bouclier.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fiscor - Gestion & Compta Premium</title>
@@ -323,6 +324,7 @@
                 Accéder à l'app gratuite
             </button>
             <button onclick="location.reload()" class="btn gate-btn-secondary gate-btn">Réessayer</button>
+            <button id="btn-logout-error" class="btn gate-btn-secondary gate-btn" style="border-color: transparent; background: #F3F4F6;">Se déconnecter</button>
         </div>
     </div>
 
@@ -1235,6 +1237,7 @@
         const emailInput = document.getElementById('email-input');
         const passwordInput = document.getElementById('password-input');
         const logoutBtn = document.getElementById('btn-logout');
+        const logoutErrorBtn = document.getElementById('btn-logout-error');
 
         // Logic
         async function checkAccess() {
@@ -1341,7 +1344,7 @@
                 });
         });
 
-        // Logout Handler
+        // Logout Handler (Main App)
         logoutBtn.addEventListener('click', () => {
             signOut(auth).then(() => {
                 location.reload(); // Refresh to reset state and show gate
@@ -1349,6 +1352,17 @@
                 console.error("Sign out error", error);
             });
         });
+
+        // Logout Handler (Error Gate - NEW)
+        if(logoutErrorBtn) {
+            logoutErrorBtn.addEventListener('click', () => {
+                signOut(auth).then(() => {
+                    location.reload(); 
+                }).catch((error) => {
+                    console.error("Sign out error", error);
+                });
+            });
+        }
 
         // Start
         checkAccess();
