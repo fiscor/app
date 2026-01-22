@@ -145,10 +145,18 @@
         .topbar { height: var(--header-height); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; position: sticky; top: 0; z-index: 40; transition: all 0.3s ease; }
         .page-title { font-size: 20px; font-weight: 600; color: var(--text-main); }
         .topbar-actions { display: flex; align-items: center; gap: 16px; }
-        .user-pill { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border-light); padding: 6px 16px 6px 6px; border-radius: var(--radius-pill); cursor: pointer; transition: all 0.2s ease; }
+        
+        /* User Menu */
+        .user-menu-wrapper { position: relative; }
+        .user-pill { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border-light); padding: 6px 16px 6px 6px; border-radius: var(--radius-pill); cursor: pointer; transition: all 0.2s ease; user-select: none; }
         .user-pill:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
-        .avatar { width: 32px; height: 32px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
-        .user-name { font-size: 14px; font-weight: 500; }
+        .avatar { width: 32px; height: 32px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; text-transform: uppercase; }
+        .user-name { font-size: 14px; font-weight: 500; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-dropdown { position: absolute; top: 100%; right: 0; margin-top: 8px; background: white; border: 1px solid var(--border-light); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); width: 200px; display: none; overflow: hidden; animation: fadeIn 0.2s ease; }
+        .user-dropdown.show { display: block; }
+        .dropdown-item { padding: 12px 16px; font-size: 14px; color: var(--text-secondary); cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 8px; }
+        .dropdown-item:hover { background: var(--bg-body); color: var(--danger); }
+        
         .menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--text-main); padding: 8px; }
 
         /* Content Area */
@@ -425,10 +433,18 @@
                 </div>
 
                 <div class="topbar-actions">
-                    <div class="user-pill">
-                        <div class="avatar">JM</div>
-                        <span class="user-name">Jean Michel</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    <div class="user-menu-wrapper">
+                        <div class="user-pill" onclick="toggleUserMenu()">
+                            <div class="avatar" id="user-avatar-display">U</div>
+                            <span class="user-name" id="user-name-display">Connexion...</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                        </div>
+                        <div id="user-dropdown" class="user-dropdown">
+                            <div class="dropdown-item" id="btn-logout">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                Déconnexion
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -783,6 +799,169 @@
             }
         ];
 
+        const FORMATIONS_DATA = [
+            {
+                category: "Fondations & Bases",
+                icon: `<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>`,
+                items: [
+                    { id: 'fondation-1', title: "Carte du système fiscal français", desc: "Qui paie quoi, quand, à qui ? Une vue d'ensemble sans jargon.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'fondation-2', title: "Micro-entreprise : les règles pièges", desc: "Plafonds, tolérances, erreurs classiques à éviter absolument.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'fondation-3', title: "Créer son \"setup administratif pro\"", desc: "Dossiers, preuves, process mensuel pour être carré.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'fondation-4', title: "Calendrier fiscal complet", desc: "Année type : URSSAF, TVA, impôts, CFE, toutes les dates.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'fondation-5', title: "Comprendre la TVA en 60 minutes", desc: "Collectée, déductible, franchise, régimes : l'essentiel.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'fondation-6', title: "Lire une facture comme un pro", desc: "Mentions obligatoires, TVA, erreurs fatales à repérer.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'fondation-7', title: "Séparer pro/perso proprement", desc: "Banque, cartes, justificatifs : les règles simples.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'fondation-8', title: "La logique des charges déductibles", desc: "Ce qui passe en frais et ce qui est interdit.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'fondation-9', title: "Contrôle fiscal : la réalité", desc: "Comment ça arrive vraiment : signaux, déclencheurs, erreurs.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'fondation-10', title: "Créer un \"bouclier de preuves\"", desc: "Ce que vous devez garder et comment archiver.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            },
+            {
+                category: "Micro-Entreprise Mastery",
+                icon: `<path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>`,
+                items: [
+                    { id: 'micro-1', title: "Optimiser une micro sans ligne rouge", desc: "Les leviers d'optimisation propres et légaux.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'micro-2', title: "Micro BIC vs Micro BNC", desc: "Comprendre la différence sans jargon comptable.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'micro-3', title: "Anticiper la sortie micro", desc: "Quand basculer au réel/société et pourquoi.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'micro-4', title: "Piloter ton CA", desc: "Éviter les mauvaises surprises et le dépassement non prévu.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'micro-5', title: "Micro + TVA : le checkpoint", desc: "Gérer les seuils de TVA en micro-entreprise.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'micro-6', title: "Déclaration URSSAF : zéro erreur", desc: "Cas courants et pièges à éviter lors de la déclaration.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'micro-7', title: "Le vrai coût d’une micro", desc: "Calcul complet : charges + impôts + TVA réelle.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'micro-8', title: "Facturation micro impeccable", desc: "Mentions légales, numérotation, règles d'archivage.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'micro-9', title: "Micro & prestations de services", desc: "Pièges spécifiques et bonnes pratiques prestataires.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'micro-10', title: "Micro & e-commerce", desc: "Règles de base et erreurs fréquentes en vente en ligne.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            },
+            {
+                category: "Maîtriser la TVA",
+                icon: `<line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle>`,
+                items: [
+                    { id: 'tva-1', title: "Franchise en base", desc: "Comment facturer sans TVA sans se mettre en danger.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-2', title: "Passage à la TVA", desc: "Plan de transition complet en 7 étapes.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-3', title: "TVA au quotidien", desc: "Process mensuel : collecte, tri, paiement.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-4', title: "TVA déductible", desc: "Maximiser la déduction proprement (preuves, timing).", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-5', title: "TVA sur achats UE (services)", desc: "L'autoliquidation expliquée sans stress.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-6', title: "TVA sur biens UE", desc: "Logique, preuves et cas fréquents d'intracom.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-7', title: "Export hors UE", desc: "TVA 0% et preuves exigées par l'administration.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-8', title: "TVA sur plateformes", desc: "Amazon, Etsy, eBay : logique et points d'attention.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-9', title: "TVA et factures d’acompte", desc: "Gérer l'exigibilité de la TVA sur les acomptes.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-10', title: "TVA et avoirs", desc: "Corriger une facture sans créer d'ennuis comptables.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-11', title: "Erreurs TVA coûteuses", desc: "Mauvais taux, mentions oubliées, déduction abusive.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-12', title: "Choisir le bon régime TVA", desc: "Réel simplifié (acomptes) vs Réel normal (mensuel).", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-13', title: "Rattrapage TVA", desc: "Oubli de déclaration : la procédure exacte.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-14', title: "Provisionner la TVA", desc: "Éviter la 'brique' à payer en fin de mois/trimestre.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'tva-15', title: "Audit TVA interne", desc: "Checklist de contrôle à faire soi-même.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            },
+            {
+                category: "Impôts & Charges",
+                icon: `<rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>`,
+                items: [
+                    { id: 'impot-1', title: "Impôt sur le revenu", desc: "Comprendre ce que tu paies vraiment (sans cours magistral).", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-2', title: "Prélèvement à la source", desc: "Régler ça proprement pour les indépendants.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-3', title: "Bénéfice vs CA", desc: "L'erreur de pilotage qui ruine les entrepreneurs.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-4', title: "Charges déductibles", desc: "Liste 'safe / risque / interdit'.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-5', title: "Dépenses mixtes (pro/perso)", desc: "Règles de répartition propres et exemples.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-6', title: "Amortissements", desc: "L'arme secrète expliquée simplement.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-7', title: "TVA + charges", desc: "Lecture combinée d'une facture.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-8', title: "CFE", desc: "Comprendre la Cotisation Foncière et éviter les surprises.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-9', title: "Acomptes & régularisations", desc: "Pourquoi tu prends des claques fiscales et comment lisser.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-10', title: "Se payer en indépendant", desc: "Stratégie simple sans optimisation agressive.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-11', title: "Construire ton budget fiscal", desc: "Ton outil de pilotage mensuel.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-12', title: "Le plan anti-dettes fiscales", desc: "Méthode de gestion en 30 minutes / mois.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-13', title: "Déductions & crédits utiles", desc: "Les aides réelles selon votre profil.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-14', title: "Optimisation propre", desc: "Les leviers autorisés et ceux à fuir.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'impot-15', title: "Audit annuel perso", desc: "Clôturer proprement sans comptable (version sans société).", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            },
+            {
+                category: "Passage au Réel",
+                icon: `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line>`,
+                items: [
+                    { id: 'reel-1', title: "Micro → réel : quand et comment", desc: "Stratégie et timing de la bascule.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'reel-2', title: "Régime réel : ce que ça change", desc: "Preuves, suivi, process : la réalité du quotidien.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'reel-3', title: "Organisation au réel", desc: "Tenue du journal, classement des pièces.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'reel-4', title: "TVA au réel : routine béton", desc: "Gérer la TVA dans un régime réel.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'reel-5', title: "Dépenses & justificatifs au réel", desc: "Le niveau d'exigence 'inspection-ready'.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'reel-6', title: "Tableau de trésorerie au réel", desc: "Simple mais puissant pour piloter.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'reel-7', title: "Préparer ses déclarations au réel", desc: "Le workflow pour ne pas stresser.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'reel-8', title: "Éviter les erreurs de débutant", desc: "Les pièges classiques du régime réel.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'reel-9', title: "Réel + international", desc: "Points d'attention spécifiques.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'reel-10', title: "Réel sans expert-comptable", desc: "Est-ce faisable ? Conditions et limites.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            },
+            {
+                category: "Création de Société (SASU/EURL)",
+                icon: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>`,
+                items: [
+                    { id: 'soc-1', title: "SASU vs EURL : le choix", desc: "Questionnaire mental pour décider selon ton profil.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-2', title: "Créer une SASU", desc: "Les étapes complètes de création.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-3', title: "Créer une EURL", desc: "Les étapes complètes de création.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-4', title: "Banque & dépôt de capital", desc: "Faire simple et rapide.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-5', title: "Statuts : les clauses clés", desc: "L'essentiel sans écrire un roman.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-6', title: "Objet social", desc: "Comment rédiger pour ne pas se bloquer.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-7', title: "Kbis, INPI, formalités", desc: "Le vrai chemin administratif.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-8', title: "TVA en société", desc: "Mise en place et routine.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-9', title: "Se payer en SASU", desc: "Salaire vs dividendes expliqués simplement.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-10', title: "Se payer en EURL", desc: "La logique de rémunération TNS.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-11', title: "Dividendes", desc: "Règles et erreurs fréquentes.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-12', title: "Notes de frais", desc: "Faire propre et éviter les redressements.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-13', title: "Compte courant d’associé", desc: "Un outil puissant à utiliser proprement.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-14', title: "Holding", desc: "Quand ça vaut le coup (et quand non).", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'soc-15', title: "Passage micro → société", desc: "La checklist de bascule complète.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            },
+            {
+                category: "E-commerce & Digital",
+                icon: `<circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>`,
+                items: [
+                    { id: 'ecom-1', title: "Vendre sur Amazon", desc: "Organisation fiscale et vue d'ensemble.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'ecom-2', title: "Etsy/eBay", desc: "Facturation, preuves, TVA (général).", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'ecom-3', title: "Digital products", desc: "TVA & règles générales (UE/hors UE).", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'ecom-4', title: "Dropshipping", desc: "Erreurs fiscales courantes (sans mythes).", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'ecom-5', title: "Paiements en ligne", desc: "Stripe/PayPal/Revolut : classer et justifier.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'ecom-6', title: "Remboursements & litiges", desc: "Gérer la compta et la TVA proprement.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'ecom-7', title: "Abonnements & recurring", desc: "Facturation clean pour les modèles récurrents.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'ecom-8', title: "Archivage e-commerce", desc: "Preuves et durées de conservation.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            },
+            {
+                category: "International & Export",
+                icon: `<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>`,
+                items: [
+                    { id: 'inter-1', title: "Clients UE", desc: "Facturer proprement : logique générale + preuves.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'inter-2', title: "Clients hors UE", desc: "TVA 0% et justificatifs à fournir.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'inter-3', title: "Prestations à l’étranger", desc: "Règles clés des services internationaux.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'inter-4', title: "Autoliquidation", desc: "Comprendre le mécanisme sans se tromper.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'inter-5', title: "Devises & change", desc: "Sécuriser ta marge face aux taux.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'inter-6', title: "Numéro de TVA intracom", desc: "Quand, comment et erreurs à éviter.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'inter-7', title: "International : le 80/20", desc: "Le protocole simple pour couvrir 80% des cas.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            },
+            {
+                category: "Expatriation & Départ",
+                icon: `<path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path>`,
+                items: [
+                    { id: 'expat-1', title: "Résidence fiscale", desc: "Critères clés et pièges à connaître.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'expat-2', title: "Partir proprement", desc: "Check-list des 60 jours avant départ.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'expat-3', title: "Prouver ton départ", desc: "Les preuves qui comptent vraiment.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'expat-4', title: "Comptes & contrats", desc: "Sécuriser le volet bancaire et contractuel.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'expat-5', title: "Vendre depuis l’étranger", desc: "Organisation clean de l'activité.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'expat-6', title: "Revenir en France", desc: "Erreurs administratives fréquentes au retour.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'expat-7', title: "Expat + société", desc: "Vue d'ensemble des options et limites.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'expat-8', title: "Risque de requalification", desc: "Éviter les signaux d'alerte (pédagogique).", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            },
+            {
+                category: "Contrôle & Litiges",
+                icon: `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>`,
+                items: [
+                    { id: 'litige-1', title: "Contrôle fiscal", desc: "Kit de réponse : process et documents.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'litige-2', title: "URSSAF & impayés", desc: "Kit anti-galère : protocole, preuves et modèles.", action: "Voir le module", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` }
+                ]
+            }
+        ];
+
         // --- RENDER LOGIC ---
         function renderSection(data, containerId) {
             const container = document.getElementById(containerId);
@@ -870,6 +1049,24 @@
             document.getElementById('sidebar').classList.toggle('open');
         }
 
+        // User Menu Toggle
+        function toggleUserMenu() {
+            document.getElementById('user-dropdown').classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.closest('.user-menu-wrapper')) {
+                const dropdowns = document.getElementsByClassName("user-dropdown");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
         // --- FISCOR AI SIMULATION ---
         
         function triggerFakeAI() {
@@ -917,7 +1114,9 @@
             // Add User Message
             const userMsgHTML = `
                 <div class="message user">
-                    <div class="chat-avatar">JM</div>
+                    <div class="chat-avatar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </div>
                     <div class="message-bubble">${message}</div>
                 </div>
             `;
@@ -1009,7 +1208,7 @@
     <!-- FIREBASE & AUTH LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1035,6 +1234,7 @@
         const loginEmailBtn = document.getElementById('btn-login-email');
         const emailInput = document.getElementById('email-input');
         const passwordInput = document.getElementById('password-input');
+        const logoutBtn = document.getElementById('btn-logout');
 
         // Logic
         async function checkAccess() {
@@ -1044,10 +1244,12 @@
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     console.log("User detected:", user.uid);
-                    // Hide Gate inputs temporarily to show loading state if gate is visible
-                    if(premiumGate.style.display !== 'none') {
-                        // Optional: Show a loading state inside the gate
-                    }
+                    
+                    // Update User UI
+                    const displayName = user.displayName || user.email.split('@')[0];
+                    const email = user.email;
+                    document.getElementById('user-name-display').textContent = displayName;
+                    document.getElementById('user-avatar-display').textContent = displayName.substring(0, 2).toUpperCase();
 
                     try {
                         const docRef = doc(db, "users", user.uid);
@@ -1137,6 +1339,15 @@
                     alert("Erreur de connexion : " + errorMessage);
                     loginEmailBtn.textContent = "Se connecter";
                 });
+        });
+
+        // Logout Handler
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                location.reload(); // Refresh to reset state and show gate
+            }).catch((error) => {
+                console.error("Sign out error", error);
+            });
         });
 
         // Start
