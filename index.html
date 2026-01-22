@@ -1,1449 +1,1132 @@
 <!DOCTYPE html>
-<html lang="fr" class="scroll-smooth">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Le Bouclier Fiscal — Ebook fiscalité + plateforme</title>
-    <meta name="description" content="Protégez votre argent des impôts légalement. Guide étape par étape, modèles prêts à l'emploi et plateforme fiscale incluse.">
-    <meta property="og:title" content="Le Bouclier Fiscal">
-    <meta property="og:description" content="La stratégie fiscale ultime pour les entrepreneurs.">
-    <meta property="og:type" content="website">
-
-    <!-- Google Fonts: Inter -->
+    <title>Fiscor - Gestion & Compta Premium</title>
+    <meta name="description" content="L'application ultime pour gérer votre entreprise avec l'aide de l'IA.">
+    
+    <!-- Font Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Tailwind CSS (via CDN pour zéro build) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        violet: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            200: '#ddd6fe',
-                            300: '#c4b5fd',
-                            400: '#a78bfa',
-                            500: '#8b5cf6',
-                            600: '#7c3aed', // Premium primary
-                            700: '#6d28d9', // Darker violet
-                            800: '#5b21b6',
-                            900: '#4c1d95',
-                        },
-                        dark: '#0B0B0F',
-                        gray: {
-                            body: '#6B7280',
-                            light: '#F3F4F6'
-                        }
-                    },
-                    boxShadow: {
-                        'premium': '0 20px 40px -5px rgba(109, 40, 217, 0.15)',
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-                        'card': '0 0 0 1px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04)',
-                        'card-hover': '0 0 0 1px rgba(109, 40, 217, 0.1), 0 12px 32px -4px rgba(109, 40, 217, 0.15)',
-                        'glow': '0 0 20px rgba(124, 58, 237, 0.4)'
-                    },
-                    animation: {
-                        'marquee': 'marquee 60s linear infinite',
-                        'scaleIn': 'scaleIn 0.3s ease-out',
-                    },
-                    keyframes: {
-                        marquee: {
-                            '0%': { transform: 'translateX(0%)' },
-                            '100%': { transform: 'translateX(-50%)' },
-                        },
-                        scaleIn: {
-                            '0%': { opacity: '0', transform: 'scale(0.95)' },
-                            '100%': { opacity: '1', transform: 'scale(1)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- GSAP & ScrollTrigger -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 
     <style>
-        /* Custom Premium Styles */
-        body {
-            background-color: #FFFFFF;
-            color: #0B0B0F;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
+        /* --- VARIABLES & RESET --- */
+        :root {
+            --primary: #7C3AED;
+            --primary-hover: #6D28D9;
+            --primary-light: #F3E8FF;
+            --bg-body: #F9FAFB;
+            --bg-card: #FFFFFF;
+            --text-main: #111827;
+            --text-secondary: #6B7280;
+            --border-light: #E5E7EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-pill: 9999px;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            --nav-width: 280px;
+            --header-height: 80px;
         }
 
-        /* Glassmorphism Navbar */
-        .glass-nav {
-            background: rgba(255, 255, 255, 0);
-            transition: all 0.4s ease;
-        }
-        .glass-nav.scrolled {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; outline-color: var(--primary); }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); font-size: 16px; line-height: 1.5; overflow-x: hidden; }
 
-        /* Gradient Text */
-        .text-gradient {
-            background: linear-gradient(135deg, #6d28d9 0%, #a855f7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* --- SPLASH & GATE STYLES --- */
+        #splash-screen {
+            position: fixed; inset: 0; background-color: var(--primary); z-index: 99999;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
-
-        /* Button Shine Effect */
-        .btn-shine {
+        
+        .liquid-container {
             position: relative;
-            overflow: hidden;
         }
-        .btn-shine::after {
-            content: '';
+
+        .liquid-text {
+            font-size: 10vw;
+            font-weight: 900;
+            color: rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            position: relative;
+            user-select: none;
+            letter-spacing: -2px;
+        }
+
+        .liquid-text::before {
+            content: attr(data-text);
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 50%;
+            top: 0; left: 0;
+            width: 100%;
             height: 100%;
-            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
-            transform: skewX(-25deg);
-            transition: 0.5s;
-        }
-        .btn-shine:hover::after {
-            left: 200%;
-            transition: 0.7s;
-        }
-
-        /* Marquee Gradient Mask */
-        .marquee-mask {
-            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #FAFAFA;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #E5E7EB;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #D1D5DB;
-        }
-
-        /* Accordion transition */
-        .accordion-content {
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-            max-height: 0;
-            opacity: 0;
+            color: white;
             overflow: hidden;
-        }
-        .accordion-content.active {
-            opacity: 1;
-        }
-
-        /* Book floating animation */
-        @keyframes float {
-            0% { transform: translateY(0px) rotateY(-10deg) rotateX(5deg); }
-            50% { transform: translateY(-15px) rotateY(-10deg) rotateX(5deg); }
-            100% { transform: translateY(0px) rotateY(-10deg) rotateX(5deg); }
-        }
-        .book-container {
-            perspective: 1000px;
-        }
-        .book-3d {
-            transform: rotateY(-10deg) rotateX(5deg);
-            box-shadow: 20px 20px 50px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease;
-            animation: float 6s ease-in-out infinite;
-        }
-        .book-3d:hover {
-            transform: rotateY(0deg) rotateX(0deg) scale(1.02);
-            animation-play-state: paused;
+            animation: liquidFill 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            /* Masque pour effet de remplissage */
+            clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
         }
 
-        /* Reveal classes for JS */
-        .reveal-up { opacity: 0; transform: translateY(30px); }
-        .reveal-in { opacity: 0; filter: blur(5px); }
+        @keyframes liquidFill {
+            0% { clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%); }
+            20% { clip-path: polygon(0 100%, 100% 100%, 100% 85%, 0 90%); }
+            40% { clip-path: polygon(0 80%, 100% 90%, 100% 100%, 0 100%); }
+            60% { clip-path: polygon(0 60%, 100% 50%, 100% 100%, 0 100%); }
+            80% { clip-path: polygon(0 30%, 100% 40%, 100% 100%, 0 100%); }
+            100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+        }
+
+        /* Gate Overlay (Auth/Premium Check) */
+        #premium-gate {
+            position: fixed; inset: 0; background-color: rgba(255,255,255,0.96); backdrop-filter: blur(10px);
+            z-index: 99998; display: none; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; text-align: center;
+        }
+        .gate-card {
+            background: white; padding: 48px; border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg); border: 1px solid var(--border-light);
+            max-width: 480px; width: 100%; animation: slideUp 0.4s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .gate-title { font-size: 24px; font-weight: 700; margin-bottom: 16px; color: var(--text-main); }
+        .gate-text { color: var(--text-secondary); margin-bottom: 32px; font-size: 16px; line-height: 1.6; }
+        
+        .gate-input {
+            width: 100%; padding: 14px 16px; border: 1px solid var(--border-light);
+            border-radius: var(--radius-md); font-size: 15px; margin-bottom: 16px;
+            font-family: inherit; outline: none; transition: border-color 0.2s;
+            background: var(--bg-body);
+        }
+        .gate-input:focus { border-color: var(--primary); background: white; }
+
+        .gate-btn { width: 100%; margin-bottom: 12px; }
+        .gate-btn-secondary { background: white; color: var(--text-main); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
+        .gate-btn-secondary:hover { border-color: var(--text-secondary); transform: translateY(-1px); }
+
+        .gate-separator {
+            margin: 20px 0; font-size: 12px; color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 1px; position: relative;
+        }
+        .gate-separator::before, .gate-separator::after {
+            content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--border-light);
+        }
+        .gate-separator::before { left: 0; }
+        .gate-separator::after { right: 0; }
+
+        /* --- EXISTING LAYOUT --- */
+        .app-shell { display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: var(--nav-width); background: var(--bg-card); border-right: 1px solid var(--border-light); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 50; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-header { height: var(--header-height); display: flex; align-items: center; padding: 0 32px; }
+        .logo { font-weight: 700; font-size: 24px; color: var(--text-main); display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; text-decoration: none; }
+        .logo svg { color: var(--primary); width: 32px; height: 32px; }
+        .nav-menu { flex: 1; padding: 32px 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-md); color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: all 0.2s ease; cursor: pointer; }
+        .nav-item:hover { background-color: var(--bg-body); color: var(--primary); }
+        .nav-item.active { background-color: var(--primary-light); color: var(--primary); }
+        .nav-item svg { width: 20px; height: 20px; stroke-width: 2px; }
+        .sidebar-footer { padding: 24px; border-top: 1px solid var(--border-light); }
+
+        /* Main Content */
+        .main-content { flex: 1; margin-left: var(--nav-width); display: flex; flex-direction: column; min-height: 100vh; width: calc(100% - var(--nav-width)); }
+        
+        /* Topbar */
+        .topbar { height: var(--header-height); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; position: sticky; top: 0; z-index: 40; transition: all 0.3s ease; }
+        .page-title { font-size: 20px; font-weight: 600; color: var(--text-main); }
+        .topbar-actions { display: flex; align-items: center; gap: 16px; }
+        .user-pill { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border-light); padding: 6px 16px 6px 6px; border-radius: var(--radius-pill); cursor: pointer; transition: all 0.2s ease; }
+        .user-pill:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+        .avatar { width: 32px; height: 32px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; }
+        .user-name { font-size: 14px; font-weight: 500; }
+        .menu-toggle { display: none; background: none; border: none; cursor: pointer; color: var(--text-main); padding: 8px; }
+
+        /* Content Area */
+        .content-area { padding: 40px; flex: 1; max-width: 1280px; width: 100%; margin: 0 auto; }
+        .view-section { display: none; animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* TOOLS GRID SYSTEM */
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; margin-top: 24px; margin-bottom: 56px; }
+        .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); }
+        .section-title { font-size: 18px; font-weight: 600; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; }
+        .section-icon { color: var(--primary); width: 24px; height: 24px; }
+        
+        .tool-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 24px; transition: all 0.3s ease; text-decoration: none; display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; cursor: pointer; }
+        .tool-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary-light); }
+        .tool-icon { width: 48px; height: 48px; background: var(--primary-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); margin-bottom: 20px; transition: transform 0.3s ease; }
+        .tool-card:hover .tool-icon { transform: scale(1.1) rotate(3deg); }
+        .tool-card:hover .tool-icon svg { stroke-width: 2.5px; }
+        .tool-title { font-size: 18px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; line-height: 1.3; }
+        .tool-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px; flex-grow: 1; }
+        .tool-action { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--primary); margin-top: auto; }
+        .tool-action svg { transition: transform 0.2s ease; width: 16px; height: 16px; }
+        .tool-card:hover .tool-action svg { transform: translateX(4px); }
+
+        /* DASHBOARD LAUNCHER STYLE */
+        .launcher-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; margin-bottom: 40px; }
+        .launcher-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 32px; transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: center; min-height: 220px; position: relative; overflow: hidden; text-decoration: none; cursor: pointer; }
+        .launcher-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+        .launcher-icon { width: 64px; height: 64px; background: var(--primary-light); color: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+        .launcher-icon svg { width: 32px; height: 32px; stroke-width: 2; }
+        .launcher-title { font-size: 24px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+        .launcher-desc { font-size: 16px; color: var(--text-secondary); max-width: 80%; line-height: 1.5; }
+        .launcher-arrow { position: absolute; bottom: 32px; right: 32px; width: 40px; height: 40px; border-radius: 50%; background: var(--bg-body); color: var(--text-main); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .launcher-card:hover .launcher-arrow { background: var(--primary); color: white; transform: translateX(5px); }
+
+        .info-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 32px; }
+        
+        .fun-fact-card { background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%); color: white; padding: 40px; border-radius: var(--radius-lg); position: relative; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.4); display: flex; flex-direction: column; justify-content: center; }
+        .fun-fact-card::before { content: '"'; position: absolute; top: 10px; right: 20px; font-size: 140px; font-family: serif; opacity: 0.1; line-height: 1; }
+        .fact-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 16px; display: block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; width: fit-content; backdrop-filter: blur(4px); }
+        .fact-content { font-size: 24px; font-weight: 600; line-height: 1.4; max-width: 90%; margin-bottom: 24px; }
+        
+        .pro-tip-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 32px; display: flex; flex-direction: column; justify-content: space-between; }
+        .tip-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .tip-icon { color: var(--warning); }
+        .tip-title { font-weight: 600; font-size: 18px; }
+        .tip-content { color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
+
+        /* CHAT UI */
+        .chat-container { display: flex; flex-direction: column; height: calc(100vh - 200px); background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-light); overflow: hidden; box-shadow: var(--shadow-sm); }
+        .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+        .message { display: flex; align-items: flex-start; gap: 12px; max-width: 80%; animation: fadeIn 0.3s ease; }
+        .message.user { align-self: flex-end; flex-direction: row-reverse; }
+        .message-bubble { padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.5; position: relative; }
+        .message.bot .message-bubble { background: var(--bg-body); color: var(--text-main); border-bottom-left-radius: 4px; border: 1px solid var(--border-light); }
+        .message.user .message-bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2); }
+        .chat-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .message.user .chat-avatar { background: #E5E7EB; color: #374151; }
+        .chat-input-area { padding: 20px; border-top: 1px solid var(--border-light); background: white; display: flex; gap: 12px; align-items: center; }
+        .chat-input { flex: 1; padding: 14px 16px; border-radius: var(--radius-pill); border: 1px solid var(--border-light); font-family: inherit; font-size: 15px; outline: none; transition: border-color 0.2s; }
+        .chat-input:focus { border-color: var(--primary); }
+        .send-btn { width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; }
+        .send-btn:hover { transform: scale(1.05); background: var(--primary-hover); }
+        .typing-indicator { font-size: 12px; color: var(--text-secondary); margin-left: 56px; margin-top: -10px; margin-bottom: 10px; display: none; font-style: italic; }
+
+        /* CONTACT CARDS */
+        .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 32px; }
+        .contact-card { background: white; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 32px; text-align: center; transition: transform 0.2s; }
+        .contact-card:hover { transform: translateY(-4px); border-color: var(--primary-light); box-shadow: var(--shadow-md); }
+        .contact-icon { width: 64px; height: 64px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        .contact-value { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; display: block; }
+        .contact-label { color: var(--text-secondary); font-size: 14px; }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(2px); }
+        .modal-overlay.open { display: flex; opacity: 1; }
+        .modal-content { background: white; width: 100%; max-width: 500px; border-radius: var(--radius-lg); padding: 32px; position: relative; transform: translateY(20px); transition: transform 0.3s ease; box-shadow: var(--shadow-lg); }
+        .modal-overlay.open .modal-content { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-title { font-size: 20px; font-weight: 700; }
+        .close-modal { background: none; border: none; font-size: 24px; color: var(--text-secondary); cursor: pointer; }
+        .msg-template { background: var(--bg-body); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .msg-template:hover { border-color: var(--primary); background: white; }
+        .msg-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; color: var(--text-main); }
+        .msg-body { font-size: 13px; color: var(--text-secondary); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .copy-hint { font-size: 10px; color: var(--primary); font-weight: 700; position: absolute; top: 16px; right: 16px; opacity: 0; transition: opacity 0.2s; }
+        .msg-template:hover .copy-hint { opacity: 1; }
+
+        /* Construction State */
+        .construction-state { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 100px 24px; background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); min-height: 500px; transition: all 0.3s ease; }
+        .construction-state:hover { box-shadow: var(--shadow-md); }
+        .construction-icon-wrapper { width: 96px; height: 96px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 32px; color: var(--primary); position: relative; }
+        .construction-icon-wrapper::after { content: ''; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; border-radius: 50%; border: 1px solid var(--primary); opacity: 0.2; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.2; } 50% { transform: scale(1.05); opacity: 0.1; } 100% { transform: scale(1); opacity: 0.2; } }
+        .construction-icon-wrapper svg { width: 48px; height: 48px; stroke-width: 1.5; }
+        .construction-title { font-size: 28px; font-weight: 700; margin-bottom: 16px; color: var(--text-main); letter-spacing: -0.5px; }
+        .construction-text { color: var(--text-secondary); max-width: 480px; margin-bottom: 40px; font-size: 16px; line-height: 1.6; }
+
+        /* Components */
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 14px 32px; border-radius: var(--radius-pill); font-weight: 600; font-size: 15px; transition: all 0.2s ease; cursor: pointer; border: none; gap: 10px; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35); }
+        .btn-primary:active { transform: translateY(0); }
+        .tag-beta { font-size: 10px; font-weight: 700; background: var(--primary); color: white; padding: 3px 8px; border-radius: 6px; margin-left: auto; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Overlay */
+        .fiscor-ai-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.98); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; backdrop-filter: blur(5px); }
+        .fiscor-ai-overlay.active { opacity: 1; pointer-events: all; }
+        .ai-loader { width: 72px; height: 72px; border: 4px solid var(--primary-light); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 32px; }
+        .ai-status-text { font-size: 20px; font-weight: 600; color: var(--text-main); letter-spacing: -0.5px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Mobile */
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); box-shadow: var(--shadow-lg); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; width: 100%; }
+            .menu-toggle { display: block; }
+            .topbar { padding: 0 20px; }
+            .content-area { padding: 24px; }
+            .tools-grid { grid-template-columns: 1fr; }
+            .launcher-grid { grid-template-columns: 1fr; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 45; opacity: 0; transition: opacity 0.3s; }
+        .sidebar.open + .sidebar-overlay { display: block; opacity: 1; }
     </style>
-<link rel="stylesheet" href="/index.css">
 </head>
-<body class="antialiased selection:bg-violet-100 selection:text-violet-900">
+<body>
 
-    <!-- NAVBAR -->
-    <nav id="navbar" class="fixed w-full top-0 z-50 glass-nav h-20 flex items-center">
-        <div class="max-w-6xl mx-auto px-6 w-full flex justify-between items-center">
-            <!-- Logo -->
-            <a href="#" class="text-xl font-bold tracking-tight text-dark flex items-center gap-2 group">
-                <img src="logo.png" alt="Logo Le Bouclier Fiscal" class="w-8 h-8 rounded-lg object-contain shadow-lg group-hover:scale-105 transition-transform duration-300">
-                <span>Le Bouclier Fiscal</span>
-            </a>
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="liquid-container">
+            <h1 class="liquid-text" data-text="FISCOR APP">FISCOR APP</h1>
+        </div>
+    </div>
 
-            <!-- Desktop Menu -->
-            <div class="hidden md:flex items-center gap-8">
-                <a href="#features" class="text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors">Aperçu</a>
-                <a href="#pricing" class="text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors">Offres</a>
-                <a href="#faq" class="text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors">FAQ</a>
-                
-                <!-- Login Button (Visible by default, hidden via JS if logged in) -->
-                <button id="nav-login-btn" class="text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                    Connexion
-                </button>
+    <!-- PREMIUM GATE / LOGIN -->
+    <div id="premium-gate">
+        <div class="gate-card" id="gate-login-card">
+            <h2 class="gate-title">Connexion requise</h2>
+            <p class="gate-text">Pour accéder à votre espace premium Fiscor, veuillez vous connecter avec votre compte.</p>
+            
+            <!-- Email Login -->
+            <input type="email" id="email-input" class="gate-input" placeholder="Adresse email">
+            <input type="password" id="password-input" class="gate-input" placeholder="Mot de passe">
+            <button id="btn-login-email" class="btn btn-primary gate-btn">Se connecter</button>
 
-                <!-- User Account Area (Hidden by default) -->
-                <div id="nav-user-area" class="hidden items-center gap-4">
-                    <a href="https://fiscor.github.io/free/" class="text-sm font-bold text-violet-600 bg-violet-50 px-3 py-1.5 rounded-lg border border-violet-100 hover:bg-violet-100 transition-colors">
-                        Mon Espace
-                    </a>
-                    <button id="nav-logout-btn" class="text-gray-400 hover:text-red-500 transition-colors" title="Se déconnecter">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                    </button>
-                </div>
+            <div class="gate-separator">OU</div>
 
-                <a href="#pricing" class="btn-shine bg-violet-600 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-lg shadow-violet-200 hover:bg-violet-700 hover:shadow-violet-300 hover:-translate-y-0.5 transition-all duration-300">
-                    Acheter maintenant
-                </a>
-            </div>
-
-            <!-- Mobile Burger -->
-            <button id="mobile-menu-btn" class="md:hidden text-dark p-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
+            <!-- Google Login -->
+            <button id="btn-login-google" class="btn gate-btn-secondary gate-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                Connexion avec Google
             </button>
         </div>
-        
-        <!-- Mobile Menu Dropdown -->
-        <div id="mobile-menu" class="absolute top-20 left-0 w-full bg-white border-b border-gray-100 p-6 flex-col gap-4 hidden md:hidden shadow-xl origin-top transition-all duration-300">
-            <a href="#features" class="text-base font-medium text-gray-700 block py-2">Aperçu</a>
-            <a href="#pricing" class="text-base font-medium text-gray-700 block py-2">Offres</a>
-            <a href="#faq" class="text-base font-medium text-gray-700 block py-2">FAQ</a>
-            <button id="mobile-login-btn" class="text-base font-medium text-gray-700 block py-2 w-full text-left">Connexion</button>
-            <a href="#pricing" class="mt-4 block text-center bg-violet-600 text-white px-5 py-3 rounded-xl text-base font-semibold">
-                Acheter maintenant
-            </a>
-        </div>
-    </nav>
 
-    <!-- HERO SECTION -->
-    <header class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-        <!-- Background Decor -->
-        <div class="absolute inset-0 z-0 opacity-40 pointer-events-none">
-            <img src="background.png" alt="" class="w-full h-full object-cover object-top opacity-50 mix-blend-multiply">
-            <div class="absolute inset-0 bg-gradient-to-b from-white/0 via-white/50 to-white"></div>
+        <div class="gate-card" id="gate-error-card" style="display:none;">
+            <div style="font-size:48px; margin-bottom:16px;">🔒</div>
+            <h2 class="gate-title">Accès Premium Refusé</h2>
+            <p class="gate-text">Votre compte ne dispose pas d'un accès Premium actif. Vous pouvez utiliser la version gratuite de Fiscor.</p>
+            <button onclick="window.location.href='https://fiscor.github.io/free/'" class="btn btn-primary gate-btn">
+                Accéder à l'app gratuite
+            </button>
+            <button onclick="location.reload()" class="btn gate-btn-secondary gate-btn">Réessayer</button>
         </div>
+    </div>
 
-        <div class="max-w-6xl mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+    <!-- FISCOR AI LOADER -->
+    <div id="fiscor-ai-overlay" class="fiscor-ai-overlay">
+        <div class="ai-loader"></div>
+        <div class="ai-status-text" id="ai-status-text">Fiscor AI analyse votre demande...</div>
+    </div>
+
+    <!-- HELP MODAL -->
+    <div id="help-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Messages prédéfinis</h3>
+                <button class="close-modal" onclick="toggleHelpModal()">×</button>
+            </div>
+            <p style="margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">Cliquez sur un message pour le copier, puis envoyez-le par mail ou SMS.</p>
             
-            <!-- Left Content -->
-            <div class="flex flex-col items-start text-left space-y-8">
-                <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 border border-violet-100 text-violet-700 text-xs font-semibold tracking-wide uppercase">
-                    <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
-                    Nouveau guide 2024
-                </div>
-
-                <h1 class="reveal-up text-5xl lg:text-7xl font-extrabold tracking-tight text-dark leading-[1.1]">
-                    Le Bouclier <br>
-                    <span class="text-gradient">Fiscal.</span>
-                </h1>
-                
-                <p class="reveal-up text-xl text-gray-600 max-w-lg leading-relaxed font-light">
-                    Protégez votre argent des impôts. La stratégie ultime pour optimiser votre trésorerie sans tracas administratif.
-                </p>
-
-                <ul class="reveal-up space-y-3">
-                    <li class="flex items-center gap-3 text-gray-700 font-medium">
-                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                        Procédures simples, étape par étape
-                    </li>
-                    <li class="flex items-center gap-3 text-gray-700 font-medium">
-                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                        Modèles & outils prêts à l'emploi
-                    </li>
-                    <li class="flex items-center gap-3 text-gray-700 font-medium">
-                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                        Plateforme fiscale incluse
-                    </li>
-                </ul>
-
-                <div class="reveal-up flex flex-wrap gap-4 pt-2">
-                    <a href="#pricing" class="btn-shine bg-violet-600 text-white px-8 py-4 rounded-2xl text-base font-semibold shadow-xl shadow-violet-200 hover:bg-violet-700 hover:scale-[1.02] transition-all duration-300">
-                        Voir les offres
-                    </a>
-                    <a href="https://fiscor.github.io/free/" target="_blank" class="group bg-white border border-gray-200 text-gray-700 px-8 py-4 rounded-2xl text-base font-semibold hover:border-violet-200 hover:text-violet-600 hover:bg-violet-50 transition-all duration-300 flex items-center gap-2">
-                        Découvrir la plateforme
-                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                </div>
+            <div class="msg-template" onclick="copyToClipboard(this, 'Bonjour, je rencontre un problème technique sur l\'outil [Nom de l\'outil]. Pouvez-vous m\'aider ?')">
+                <div class="copy-hint">COPIER</div>
+                <div class="msg-title">🚨 Problème Technique</div>
+                <div class="msg-body">Bonjour, je rencontre un problème technique sur l'outil...</div>
             </div>
 
-            <!-- Right Image -->
-            <div class="reveal-in relative flex justify-center lg:justify-end">
-                <div class="book-container relative w-64 md:w-80 lg:w-96">
-                    <!-- Glow behind book -->
-                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-violet-500/30 blur-[60px] rounded-full -z-10"></div>
-                    <img src="livre.png" alt="Ebook Le Bouclier Fiscal" class="book-3d w-full h-auto rounded-lg object-contain">
-                </div>
+            <div class="msg-template" onclick="copyToClipboard(this, 'Bonjour, j\'ai une question fiscale concernant ma situation. Voici les détails :')">
+                <div class="copy-hint">COPIER</div>
+                <div class="msg-title">❓ Question Fiscale</div>
+                <div class="msg-body">Bonjour, j'ai une question fiscale concernant ma situation...</div>
             </div>
-        </div>
-    </header>
 
-    <!-- LOGO MARQUEE -->
-    <div class="py-10 border-y border-gray-100 bg-white relative overflow-hidden">
-        <div class="max-w-6xl mx-auto px-6 mb-8 text-center">
-            <p class="text-sm font-medium text-gray-400 uppercase tracking-widest">Disponible également sur</p>
-        </div>
-        
-        <div class="marquee-mask w-full relative flex overflow-hidden">
-            <!-- animate-marquee contains TWO identical children for perfect looping -->
-            <div class="animate-marquee flex items-center whitespace-nowrap">
-                
-                <!-- Child 1: The Content Chain (4 repetitions of the logo set) -->
-                <div class="flex items-center gap-24 pr-24 shrink-0">
-                    <!-- Repetition 1 -->
-                    <img src="amazon.png" alt="Amazon" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="ebay.png" alt="Ebay" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="etsy.png" alt="Etsy" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="fiscor.png" alt="Fiscor" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    
-                    <!-- Repetition 2 -->
-                    <img src="amazon.png" alt="Amazon" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="ebay.png" alt="Ebay" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="etsy.png" alt="Etsy" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="fiscor.png" alt="Fiscor" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
+            <div class="msg-template" onclick="copyToClipboard(this, 'Bonjour, je souhaiterais suggérer une amélioration pour l\'application :')">
+                <div class="copy-hint">COPIER</div>
+                <div class="msg-title">💡 Suggestion</div>
+                <div class="msg-body">Bonjour, je souhaiterais suggérer une amélioration...</div>
+            </div>
 
-                    <!-- Repetition 3 -->
-                    <img src="amazon.png" alt="Amazon" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="ebay.png" alt="Ebay" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="etsy.png" alt="Etsy" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="fiscor.png" alt="Fiscor" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-
-                    <!-- Repetition 4 -->
-                    <img src="amazon.png" alt="Amazon" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="ebay.png" alt="Ebay" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="etsy.png" alt="Etsy" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="fiscor.png" alt="Fiscor" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                </div>
-
-                <!-- Child 2: EXACT CLONE of Child 1 -->
-                <div class="flex items-center gap-24 pr-24 shrink-0">
-                    <!-- Repetition 1 -->
-                    <img src="amazon.png" alt="Amazon" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="ebay.png" alt="Ebay" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="etsy.png" alt="Etsy" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="fiscor.png" alt="Fiscor" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    
-                    <!-- Repetition 2 -->
-                    <img src="amazon.png" alt="Amazon" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="ebay.png" alt="Ebay" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="etsy.png" alt="Etsy" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="fiscor.png" alt="Fiscor" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-
-                    <!-- Repetition 3 -->
-                    <img src="amazon.png" alt="Amazon" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="ebay.png" alt="Ebay" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="etsy.png" alt="Etsy" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="fiscor.png" alt="Fiscor" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-
-                    <!-- Repetition 4 -->
-                    <img src="amazon.png" alt="Amazon" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="ebay.png" alt="Ebay" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="etsy.png" alt="Etsy" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                    <img src="fiscor.png" alt="Fiscor" class="h-10 opacity-40 hover:opacity-100 transition-all grayscale hover:grayscale-0 duration-500">
-                </div>
+            <div class="msg-template" onclick="copyToClipboard(this, 'Bonjour, je suis intéressé par un partenariat ou une offre entreprise.')">
+                <div class="copy-hint">COPIER</div>
+                <div class="msg-title">🤝 Partenariat</div>
+                <div class="msg-body">Bonjour, je suis intéressé par un partenariat...</div>
             </div>
         </div>
     </div>
 
-    <!-- FEATURES SECTION -->
-    <section id="features" class="py-24 bg-white relative">
-        <div class="max-w-6xl mx-auto px-6">
-            <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                <h2 class="reveal-up text-3xl md:text-4xl font-bold text-dark">Pourquoi ce guide est <span class="text-violet-600">indispensable</span> ?</h2>
-                <p class="reveal-up text-lg text-gray-500">Fini le jargon incompréhensible. Voici la méthode concrète pour sécuriser vos revenus.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
-                <div class="feature-card reveal-up group rounded-3xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:border-violet-200 transition-all duration-300 cursor-default flex flex-col overflow-hidden text-center">
-                    <div class="h-64 w-full bg-violet-50 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-violet-600/0 group-hover:bg-violet-600/5 transition-colors duration-500 z-10"></div>
-                        <img src="icone1.png" alt="Étapes étape par étape" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-xl font-bold text-dark mb-3">Pas à pas</h3>
-                        <p class="text-gray-500 leading-relaxed">Suivez les étapes une par une, sans jamais vous perdre dans la complexité.</p>
-                    </div>
-                </div>
-
-                <!-- Feature 2 -->
-                <div class="feature-card reveal-up group rounded-3xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:border-violet-200 transition-all duration-300 cursor-default flex flex-col overflow-hidden text-center">
-                    <div class="h-64 w-full bg-violet-50 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-violet-600/0 group-hover:bg-violet-600/5 transition-colors duration-500 z-10"></div>
-                        <img src="icone2.png" alt="Dans l’ordre / roadmap" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-xl font-bold text-dark mb-3">Roadmap claire</h3>
-                        <p class="text-gray-500 leading-relaxed">Un ordre logique pour implémenter votre stratégie fiscale dès aujourd'hui.</p>
-                    </div>
-                </div>
-
-                <!-- Feature 3 -->
-                <div class="feature-card reveal-up group rounded-3xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:border-violet-200 transition-all duration-300 cursor-default flex flex-col overflow-hidden text-center">
-                    <div class="h-64 w-full bg-violet-50 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-violet-600/0 group-hover:bg-violet-600/5 transition-colors duration-500 z-10"></div>
-                        <img src="icone3.png" alt="Comprendre sans jargon" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-xl font-bold text-dark mb-3">Zéro Jargon</h3>
-                        <p class="text-gray-500 leading-relaxed">Tout est expliqué en français simple. Pas besoin d'être comptable.</p>
-                    </div>
-                </div>
-
-                <!-- Feature 4 -->
-                <div class="feature-card reveal-up group rounded-3xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:border-violet-200 transition-all duration-300 cursor-default flex flex-col overflow-hidden text-center">
-                    <div class="h-64 w-full bg-violet-50 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-violet-600/0 group-hover:bg-violet-600/5 transition-colors duration-500 z-10"></div>
-                        <img src="icone4.png" alt="Templates prêts" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-xl font-bold text-dark mb-3">Templates Prêts</h3>
-                        <p class="text-gray-500 leading-relaxed">Copiez-collez nos modèles de documents pour gagner des heures.</p>
-                    </div>
-                </div>
-
-                <!-- Feature 5 -->
-                <div class="feature-card reveal-up group rounded-3xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:border-violet-200 transition-all duration-300 cursor-default flex flex-col overflow-hidden text-center">
-                    <div class="h-64 w-full bg-violet-50 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-violet-600/0 group-hover:bg-violet-600/5 transition-colors duration-500 z-10"></div>
-                        <img src="icone5.png" alt="Mentions légales / factures propres" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-xl font-bold text-dark mb-3">Conformité Totale</h3>
-                        <p class="text-gray-500 leading-relaxed">Mentions légales, factures, déclarations : tout est carré.</p>
-                    </div>
-                </div>
-
-                <!-- Feature 6 -->
-                <div class="feature-card reveal-up group rounded-3xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:border-violet-200 transition-all duration-300 cursor-default flex flex-col overflow-hidden text-center">
-                    <div class="h-64 w-full bg-violet-50 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-violet-600/0 group-hover:bg-violet-600/5 transition-colors duration-500 z-10"></div>
-                        <img src="icone6.png" alt="Tu gardes plus de cash" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                    </div>
-                    <div class="p-8">
-                        <h3 class="text-xl font-bold text-dark mb-3">Plus de Cash</h3>
-                        <p class="text-gray-500 leading-relaxed">Optimisez vos charges pour garder plus d'argent dans votre poche.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- PLATFORM SECTION -->
-    <section id="platform" class="py-24 bg-gray-50 overflow-hidden">
-        <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-            <div class="order-2 lg:order-1 reveal-in">
-                <!-- Video Container -->
-                <div class="relative bg-white rounded-3xl border border-gray-200 shadow-premium p-2 transform -rotate-1 hover:rotate-0 transition-transform duration-500">
-                    <div class="absolute -top-10 -left-10 w-40 h-40 bg-violet-400/20 rounded-full blur-3xl -z-10"></div>
-                    <video 
-                        src="fiscor.mp4" 
-                        class="w-full h-auto rounded-2xl"
-                        autoplay 
-                        loop 
-                        muted 
-                        playsinline>
-                    </video>
-                </div>
-            </div>
-
-            <div class="order-1 lg:order-2 space-y-8">
-                <div class="reveal-up inline-block text-violet-600 font-semibold tracking-wider uppercase text-sm">Technologie incluse</div>
-                <h2 class="reveal-up text-4xl font-bold text-dark">La Plateforme Fiscale <br>Intelligente.</h2>
-                <p class="reveal-up text-lg text-gray-500 leading-relaxed">
-                    Ne perdez plus votre temps à chercher les bons formulaires. Notre plateforme centralise tous les outils dont vous avez besoin pour gérer votre fiscalité en pilote automatique.
-                </p>
-                <ul class="reveal-up space-y-4 pt-2">
-                    <li class="flex items-start gap-4">
-                        <div class="w-6 h-6 mt-1 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 shrink-0 text-xs font-bold">✓</div>
-                        <div>
-                            <strong class="block text-dark">Calculateurs automatisés</strong>
-                            <span class="text-gray-500 text-sm">Simulez vos impôts en temps réel.</span>
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-4">
-                        <div class="w-6 h-6 mt-1 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 shrink-0 text-xs font-bold">✓</div>
-                        <div>
-                            <strong class="block text-dark">Bibliothèque de documents</strong>
-                            <span class="text-gray-500 text-sm">Tous les modèles juridiques à jour.</span>
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-4">
-                        <div class="w-6 h-6 mt-1 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 text-xs font-bold">Lock</div>
-                        <div>
-                            <strong class="block text-gray-400">Accès limité en version gratuite</strong>
-                            <span class="text-gray-400 text-sm">Débloquez tout avec le Pack Complet.</span>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <!-- PRICING SECTION -->
-    <section id="pricing" class="py-24 bg-white relative">
-        <div class="max-w-6xl mx-auto px-6">
-            <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                <h2 class="reveal-up text-3xl md:text-4xl font-bold text-dark">Choisis ton accès</h2>
-                <p class="reveal-up text-lg text-gray-500">Investissez une fois, économisez pour toujours.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start mb-16">
-                
-                <!-- Plan 1: Free -->
-                <div class="reveal-up flex flex-col p-8 rounded-3xl bg-white border border-gray-200 hover:border-gray-300 transition-colors">
-                    <div class="mb-4">
-                        <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold uppercase">Découverte</span>
-                    </div>
-                    <div class="mb-6">
-                        <span class="text-4xl font-bold text-dark">0€</span>
-                    </div>
-                    <p class="text-gray-500 text-sm mb-8">Pour tester la méthode sans risque.</p>
-                    <button onclick="openFreeModal()" class="block w-full py-3 px-6 rounded-xl border border-gray-200 text-center font-semibold text-dark hover:bg-gray-50 transition-colors">
-                        Commencer gratuitement
-                    </button>
-                    <div class="mt-8 space-y-3">
-                        <p class="text-sm text-dark font-medium">Inclus :</p>
-                        <ul class="space-y-3 text-sm text-gray-600">
-                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Chapitre 1 du livre</li>
-                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Plateforme limitée</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Plan 2: Pack Complet (Featured) -->
-                <div class="reveal-up relative flex flex-col p-8 rounded-3xl bg-white border border-violet-500 shadow-premium transform md:-translate-y-4 z-10">
-                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-violet-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-lg">
-                        Le meilleur deal
-                    </div>
-                    <div class="mb-4 mt-2">
-                        <span class="px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-semibold uppercase">Tout inclus</span>
-                    </div>
-                    <!-- SCARCITY UPDATED -->
-                    <div class="text-sm font-bold text-violet-600 mb-4 animate-pulse uppercase tracking-wide">
-                        1000 premiers ou jusqu'au 8 avril
-                    </div>
-                    <div class="mb-6">
-                        <div class="flex items-center gap-3 mb-1">
-                            <span class="text-5xl font-bold text-dark">39,99€</span>
-                            <div class="flex flex-col items-start">
-                                 <span class="text-gray-400 text-sm font-medium line-through">Valeur 848,58€</span>
-                                 <span class="text-xs text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full">-95%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-gray-500 text-sm mb-8">La solution totale pour sécuriser votre business.</p>
-                    <a href="https://checkout.revolut.com/pay/b772a1df-34b4-4285-8b52-1da63497de6e" target="_blank" class="btn-shine block w-full py-4 px-6 rounded-xl bg-violet-600 text-white text-center font-semibold shadow-lg shadow-violet-200 hover:bg-violet-700 transition-all hover:scale-[1.02]">
-                        Prendre le pack
-                    </a>
-                    
-                    <!-- VALUE BREAKDOWN ADDED -->
-                    <div class="mt-8 space-y-3">
-                        <p class="text-sm text-dark font-bold border-b border-gray-100 pb-2 mb-3">Ce que vous économisez :</p>
-                        <ul class="space-y-2 text-sm text-gray-600">
-                            <li class="flex justify-between items-center">
-                                <span class="flex items-center gap-2"><svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Livre broché</span>
-                                <span class="font-semibold text-gray-400 line-through">19,99€</span>
-                            </li>
-                            <li class="flex justify-between items-center">
-                                <span class="flex items-center gap-2"><svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Ebook</span>
-                                <span class="font-semibold text-gray-400 line-through">8,59€</span>
-                            </li>
-                            <li class="flex justify-between items-center">
-                                 <span class="flex items-center gap-2"><svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Plateforme à vie</span>
-                                 <span class="font-semibold text-gray-400 line-through">740€</span>
-                            </li>
-                            <li class="flex justify-between items-center">
-                                 <span class="flex items-center gap-2"><svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 1h Coaching</span>
-                                 <span class="font-semibold text-gray-400 line-through">80€</span>
-                            </li>
-                        </ul>
-                        <div class="pt-2 flex justify-between items-center font-bold text-violet-600 border-t border-gray-50 mt-2">
-                            <span>Total valeur réelle</span>
-                            <span>848,58€</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Plan 3: Ebook Only -->
-                <div class="reveal-up flex flex-col p-8 rounded-3xl bg-white border border-gray-200 hover:border-gray-300 transition-colors">
-                    <div class="mb-4">
-                        <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold uppercase">Numérique</span>
-                    </div>
-                    <div class="mb-6">
-                        <span class="text-4xl font-bold text-dark">8,59€</span>
-                    </div>
-                    <p class="text-gray-500 text-sm mb-8">L'essentiel pour comprendre et appliquer.</p>
-                    <a href="https://www.amazon.fr/dp/B0GHPNWB5H" target="_blank" class="block w-full py-3 px-6 rounded-xl border border-gray-200 text-center font-semibold text-dark hover:bg-gray-50 transition-colors">
-                        Acheter l'ebook
-                    </a>
-                    <div class="mt-8 space-y-3">
-                        <p class="text-sm text-dark font-medium">Inclus :</p>
-                        <ul class="space-y-3 text-sm text-gray-600">
-                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Le Ebook complet (PDF/Epub)</li>
-                            <li class="flex items-center gap-2"><svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Mises à jour à vie</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Coaching Card -->
-            <div class="reveal-up max-w-3xl mx-auto rounded-3xl bg-gray-900 text-white p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
-                <div class="text-left">
-                    <h3 class="text-2xl font-bold mb-2">Besoin d'aide personnalisée ?</h3>
-                    <p class="text-gray-400">Réservez une session privée d'une heure pour auditer votre situation.</p>
-                    <div class="mt-4 text-3xl font-bold text-violet-400">80€ <span class="text-sm font-normal text-gray-500">/ session</span></div>
-                </div>
-                <a href="https://calendly.com/fiscor-proton/30min" target="_blank" class="whitespace-nowrap px-8 py-4 rounded-xl bg-white text-dark font-bold hover:bg-gray-100 transition-colors">
-                    Réserver un appel
+    <div class="app-shell">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="#" onclick="navigateTo(event, 'accueil')" class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    FISCOR
                 </a>
             </div>
-        </div>
-    </section>
 
-    <!-- TIMELINE SECTION -->
-    <section class="py-24 bg-gray-50">
-        <div class="max-w-4xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="reveal-up text-3xl font-bold text-dark">Comment ça marche ?</h2>
-            </div>
-            
-            <div class="relative">
-                <!-- Line -->
-                <div class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -translate-y-1/2 z-0"></div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
-                    <!-- Step 1 -->
-                    <div class="timeline-step flex flex-col items-center text-center bg-gray-50 md:bg-transparent">
-                        <div class="w-16 h-16 rounded-2xl bg-white border border-gray-200 shadow-soft flex items-center justify-center text-xl font-bold text-violet-600 mb-6 relative">
-                            1
-                        </div>
-                        <h3 class="text-lg font-bold text-dark mb-2">Choisis ton plan</h3>
-                        <p class="text-sm text-gray-500">Sélectionne l'offre adaptée à tes besoins actuels.</p>
-                    </div>
-
-                    <!-- Step 2 -->
-                    <div class="timeline-step flex flex-col items-center text-center bg-gray-50 md:bg-transparent">
-                        <div class="w-16 h-16 rounded-2xl bg-white border border-gray-200 shadow-soft flex items-center justify-center text-xl font-bold text-violet-600 mb-6">
-                            2
-                        </div>
-                        <h3 class="text-lg font-bold text-dark mb-2">Accès immédiat</h3>
-                        <p class="text-sm text-gray-500">Reçois tes accès par email instantanément.</p>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="timeline-step flex flex-col items-center text-center bg-gray-50 md:bg-transparent">
-                        <div class="w-16 h-16 rounded-2xl bg-white border border-gray-200 shadow-soft flex items-center justify-center text-xl font-bold text-violet-600 mb-6">
-                            3
-                        </div>
-                        <h3 class="text-lg font-bold text-dark mb-2">Applique</h3>
-                        <p class="text-sm text-gray-500">Utilise les outils et sécurise ton argent.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ SECTION -->
-    <section id="faq" class="py-24 bg-white">
-        <div class="max-w-3xl mx-auto px-6">
-            <h2 class="reveal-up text-3xl font-bold text-dark text-center mb-12">Questions fréquentes</h2>
-
-            <div class="space-y-4">
-                <!-- Question 1 -->
-                <div class="reveal-up border border-gray-200 rounded-2xl overflow-hidden">
-                    <button class="accordion-header w-full flex items-center justify-between p-6 bg-white hover:bg-gray-50 transition-colors text-left focus:outline-none">
-                        <span class="font-semibold text-dark">Est-ce adapté en micro-entreprise ?</span>
-                        <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="accordion-content bg-gray-50">
-                        <div class="p-6 pt-0 text-gray-600 text-sm">
-                            Oui, absolument. Le guide couvre les spécificités de la micro-entreprise ainsi que le passage en société.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Question 2 -->
-                <div class="reveal-up border border-gray-200 rounded-2xl overflow-hidden">
-                    <button class="accordion-header w-full flex items-center justify-between p-6 bg-white hover:bg-gray-50 transition-colors text-left focus:outline-none">
-                        <span class="font-semibold text-dark">Je reçois l’ebook quand ?</span>
-                        <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="accordion-content bg-gray-50">
-                        <div class="p-6 pt-0 text-gray-600 text-sm">
-                            Immédiatement après votre commande. Vous recevrez un lien de téléchargement par email.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Question 3 -->
-                <div class="reveal-up border border-gray-200 rounded-2xl overflow-hidden">
-                    <button class="accordion-header w-full flex items-center justify-between p-6 bg-white hover:bg-gray-50 transition-colors text-left focus:outline-none">
-                        <span class="font-semibold text-dark">C’est légal ?</span>
-                        <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="accordion-content bg-gray-50">
-                        <div class="p-6 pt-0 text-gray-600 text-sm">
-                            100% légal. Nous enseignons l'optimisation fiscale (utilisation intelligente des lois), pas la fraude fiscale.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Question 4 -->
-                <div class="reveal-up border border-gray-200 rounded-2xl overflow-hidden">
-                    <button class="accordion-header w-full flex items-center justify-between p-6 bg-white hover:bg-gray-50 transition-colors text-left focus:outline-none">
-                        <span class="font-semibold text-dark">C’est quoi la plateforme fiscale ?</span>
-                        <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="accordion-content bg-gray-50">
-                        <div class="p-6 pt-0 text-gray-600 text-sm">
-                            C'est un espace membre en ligne contenant des calculateurs, des modèles de documents juridiques et des mises à jour régulières.
-                        </div>
-                    </div>
-                </div>
-                 <!-- Question 5 -->
-                <div class="reveal-up border border-gray-200 rounded-2xl overflow-hidden">
-                    <button class="accordion-header w-full flex items-center justify-between p-6 bg-white hover:bg-gray-50 transition-colors text-left focus:outline-none">
-                        <span class="font-semibold text-dark">Différence ebook vs broché ?</span>
-                        <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="accordion-content bg-gray-50">
-                        <div class="p-6 pt-0 text-gray-600 text-sm">
-                            Le contenu est identique. Le broché est un livre physique envoyé par la poste. L'ebook est numérique (PDF/EPUB).
-                        </div>
-                    </div>
-                </div>
-                 <!-- Question 6 -->
-                <div class="reveal-up border border-gray-200 rounded-2xl overflow-hidden">
-                    <button class="accordion-header w-full flex items-center justify-between p-6 bg-white hover:bg-gray-50 transition-colors text-left focus:outline-none">
-                        <span class="font-semibold text-dark">Comment se passe l’appel ?</span>
-                        <svg class="w-5 h-5 text-gray-400 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div class="accordion-content bg-gray-50">
-                        <div class="p-6 pt-0 text-gray-600 text-sm">
-                            Vous réservez votre créneau gratuitement. Lors de l'appel, nous faisons le point, vous réglez la séance, puis l'heure de coaching démarre.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FINAL CTA -->
-    <section class="py-24 px-6">
-        <div class="reveal-up max-w-5xl mx-auto bg-gradient-to-br from-violet-600 to-violet-900 rounded-[2.5rem] p-10 md:p-20 text-center relative overflow-hidden shadow-2xl">
-            <!-- Background circles -->
-            <div class="absolute top-0 left-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
-            <div class="absolute bottom-0 right-0 w-96 h-96 bg-violet-400 opacity-10 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl"></div>
-            
-            <div class="relative z-10 space-y-8">
-                <h2 class="text-3xl md:text-5xl font-bold text-white leading-tight">Le prochain palier,<br>c’est la tranquillité fiscale.</h2>
-                <a href="#pricing" class="inline-block bg-white text-violet-700 px-10 py-4 rounded-2xl text-lg font-bold hover:shadow-glow hover:scale-105 transition-all duration-300">
-                    Voir les offres
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" onclick="navigateTo(event, 'accueil')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    Accueil
                 </a>
-            </div>
-        </div>
-    </section>
+                <a href="#" class="nav-item" onclick="navigateTo(event, 'fiscor-ai')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Fiscor AI
+                    <span class="tag-beta">BETA</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo(event, 'formation')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg>
+                    Formation
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo(event, 'outils')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    Outils
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo(event, 'templates')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
+                    Templates
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo(event, 'aide')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Aide
+                </a>
+            </nav>
 
-    <!-- NEW SECTION: REAL VALUE (REDESIGNED) -->
-    <section class="py-24 bg-white relative border-t border-gray-50">
-        <div class="max-w-6xl mx-auto px-6 text-center">
-            <div class="max-w-2xl mx-auto mb-16 space-y-4">
-                <h2 class="reveal-up text-3xl md:text-4xl font-bold text-dark">Combien coûte la plateforme seule ?</h2>
-                <p class="reveal-up text-lg text-gray-500">Si vous ne prenez pas le Pack Complet aujourd'hui :</p>
+            <div class="sidebar-footer">
+                <button class="btn btn-primary" style="width: 100%; border-radius: 12px; font-size: 13px;" onclick="toggleHelpModal()">
+                    Besoin d'aide ?
+                </button>
             </div>
+        </aside>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
-                <!-- Monthly -->
-                <div class="reveal-up group p-8 rounded-[2rem] bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-500">
-                    <div class="text-gray-400 text-sm font-semibold uppercase tracking-widest mb-4">Abonnement Mensuel</div>
-                    <div class="flex items-baseline justify-center gap-1">
-                        <span class="text-4xl font-bold text-gray-900">69€</span>
-                        <span class="text-gray-500">/mois</span>
-                    </div>
-                    <div class="mt-4 text-sm text-gray-400">Paiement récurrent</div>
+        <!-- Sidebar Overlay (Mobile) -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+        <!-- MAIN -->
+        <main class="main-content">
+            
+            <!-- TOPBAR -->
+            <header class="topbar">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <button class="menu-toggle" onclick="toggleSidebar()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    <h1 class="page-title" id="page-title">Accueil</h1>
                 </div>
 
-                <!-- Yearly -->
-                <div class="reveal-up group p-8 rounded-[2rem] bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-500">
-                    <div class="text-gray-400 text-sm font-semibold uppercase tracking-widest mb-4">Abonnement Annuel</div>
-                    <div class="flex items-baseline justify-center gap-1">
-                        <span class="text-4xl font-bold text-gray-900">450€</span>
-                        <span class="text-gray-500">/an</span>
+                <div class="topbar-actions">
+                    <div class="user-pill">
+                        <div class="avatar">JM</div>
+                        <span class="user-name">Jean Michel</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                     </div>
-                     <div class="mt-4 text-sm text-green-600 font-medium bg-green-50 inline-block px-3 py-1 rounded-full">Économisez 378€</div>
                 </div>
+            </header>
 
-                <!-- Lifetime (The big expensive one) -->
-                <div class="reveal-up relative p-8 rounded-[2rem] bg-gray-900 text-white shadow-2xl shadow-violet-900/20 overflow-hidden transform md:-translate-y-4">
-                     <!-- Decor -->
-                     <div class="absolute top-0 right-0 w-32 h-32 bg-violet-500 rounded-full blur-[60px] opacity-20"></div>
-                     
-                     <div class="relative z-10 text-left">
-                        <div class="flex justify-between items-start mb-6">
-                            <div class="text-violet-300 text-sm font-bold uppercase tracking-widest">Accès à vie</div>
-                            <span class="px-3 py-1 bg-white/10 rounded-full text-xs font-medium backdrop-blur-md border border-white/10">Standard</span>
-                        </div>
+            <!-- CONTENT AREA -->
+            <div class="content-area">
+
+                <!-- 1. ACCUEIL (DASHBOARD REDESIGNED - GENERIC) -->
+                <section id="view-accueil" class="view-section active">
+                    
+                    <div style="margin-bottom: 40px; text-align: left;">
+                        <h2 style="font-size: 32px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; letter-spacing: -1px;">Bienvenue sur votre espace Fiscor</h2>
+                        <p style="color: var(--text-secondary); font-size: 18px;">Tout ce dont vous avez besoin pour piloter, apprendre et sécuriser votre activité.</p>
+                    </div>
+
+                    <!-- LAUNCHER GRID (Main Navigation) -->
+                    <div class="launcher-grid">
                         
-                        <div class="flex items-baseline gap-1 mb-2">
-                            <span class="text-5xl font-bold">740€</span>
-                            <span class="text-gray-400 text-sm">paiement unique</span>
-                        </div>
-                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Prix public pour l'accès illimité à la plateforme Fiscor sans le livre.</p>
-                        
-                        <div class="pt-6 border-t border-white/10">
-                            <div class="text-sm font-medium text-white mb-2">Inclus dans le Pack Complet ?</div>
-                            <div class="flex items-center gap-2 text-green-400 font-bold">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                OUI (pour 39,99€)
+                        <!-- CARD 1: OUTILS -->
+                        <div class="launcher-card" onclick="navigateTo(event, 'outils')">
+                            <div class="launcher-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </div>
+                            <h3 class="launcher-title">Boîte à Outils</h3>
+                            <p class="launcher-desc">Accédez aux simulateurs, générateurs de factures et outils de calcul pour gérer votre quotidien.</p>
+                            <div class="launcher-arrow">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </div>
                         </div>
-                     </div>
-                </div>
-            </div>
 
-            <div class="reveal-up max-w-3xl mx-auto bg-violet-50 rounded-2xl p-6 md:p-8 border border-violet-100">
-                <p class="text-lg md:text-xl font-medium text-violet-900">
-                    <span class="font-bold">MAIS :</span> L'accès à vie est <span class="text-violet-600 font-bold underline decoration-violet-300 underline-offset-4">INCLUS</span> dans le Pack Complet à 39,99€.<br>
-                    <span class="text-sm md:text-base font-normal opacity-80 mt-2 block">(Offre "accès à vie inclus" valable jusqu'au 8 avril 2026)</span>
-                </p>
-            </div>
-        </div>
-    </section>
+                        <!-- CARD 2: FORMATION -->
+                        <div class="launcher-card" onclick="navigateTo(event, 'formation')">
+                            <div class="launcher-icon" style="background: #ECFDF5; color: #10B981;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg>
+                            </div>
+                            <h3 class="launcher-title">Centre de Formation</h3>
+                            <p class="launcher-desc">Maîtrisez la fiscalité étape par étape avec nos modules pédagogiques clairs et sans jargon.</p>
+                            <div class="launcher-arrow">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </div>
+                        </div>
 
-    <!-- NEW COLORED FOOTER -->
-    <footer class="bg-[#1e0b36] text-white pt-20 pb-10 border-t border-violet-900/50 relative overflow-hidden">
-        <!-- Background decoration -->
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500"></div>
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <!-- CARD 3: TEMPLATES -->
+                        <div class="launcher-card" onclick="navigateTo(event, 'templates')">
+                            <div class="launcher-icon" style="background: #EFF6FF; color: #3B82F6;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
+                            </div>
+                            <h3 class="launcher-title">Bibliothèque</h3>
+                            <p class="launcher-desc">Téléchargez des modèles, guides PDF et checklists pour gagner du temps et éviter les erreurs.</p>
+                            <div class="launcher-arrow">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </div>
+                        </div>
 
-        <div class="max-w-6xl mx-auto px-6 relative z-10">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
-                <!-- Brand Column (Span 6) -->
-                <div class="md:col-span-5 space-y-6">
-                    <a href="#" class="flex items-center gap-3 text-2xl font-bold tracking-tight text-white group">
-                        <img src="logo.png" alt="Logo" class="w-10 h-10 rounded-xl object-contain bg-white p-1 group-hover:scale-105 transition-transform duration-300">
-                        <span>Le Bouclier Fiscal</span>
-                    </a>
-                    <p class="text-violet-200/80 text-sm leading-relaxed max-w-sm font-light">
-                        La première plateforme dédiée à l'optimisation fiscale pour les entrepreneurs indépendants. Sécurisez votre avenir, protégez ce que vous gagnez.
-                    </p>
-                </div>
+                        <!-- CARD 4: AIDE -->
+                        <div class="launcher-card" onclick="navigateTo(event, 'aide')">
+                            <div class="launcher-icon" style="background: #FEF3C7; color: #D97706;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <h3 class="launcher-title">Support Expert</h3>
+                            <p class="launcher-desc">Une question complexe ? Notre équipe est disponible pour vous accompagner personnellement.</p>
+                            <div class="launcher-arrow">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </div>
+                        </div>
 
-                <!-- Spacer -->
-                <div class="md:col-span-3"></div>
-
-                <!-- Links Column (Span 2) -->
-                <div class="md:col-span-2">
-                    <h4 class="font-bold text-white mb-6 text-lg">Légal</h4>
-                    <ul class="space-y-4 text-sm text-violet-200/70">
-                        <li><a href="cgv.html" class="hover:text-white hover:translate-x-1 transition-all duration-300 inline-block">CGV</a></li>
-                        <li><a href="cgu.html" class="hover:text-white hover:translate-x-1 transition-all duration-300 inline-block">CGU</a></li>
-                        <li><a href="confidentialite.html" class="hover:text-white hover:translate-x-1 transition-all duration-300 inline-block">Confidentialité</a></li>
-                    </ul>
-                </div>
-
-                <!-- Contact Column (Span 2) -->
-                <div class="md:col-span-2">
-                    <h4 class="font-bold text-white mb-6 text-lg">Support</h4>
-                    <ul class="space-y-4 text-sm text-violet-200/70">
-                        <li><a href="contact.html" class="hover:text-white hover:translate-x-1 transition-all duration-300 inline-block">Contact</a></li>
-                        <li><a href="#faq" class="hover:text-white hover:translate-x-1 transition-all duration-300 inline-block">FAQ</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Disclaimer -->
-            <div class="border-t border-white/10 pt-8 pb-8">
-                <p class="text-xs text-violet-300/50 text-justify leading-relaxed">
-                    <strong>Avertissement :</strong> Les informations fournies sur ce site et dans le guide "Le Bouclier Fiscal" le sont à titre informatif et éducatif uniquement. Elles ne constituent en aucun cas un conseil juridique, fiscal ou financier personnalisé et ne sauraient remplacer l'avis d'un professionnel qualifié (avocat, expert-comptable). L'éditeur décline toute responsabilité quant à l'utilisation qui pourrait être faite de ces informations et aux conséquences qui pourraient en découler.
-                </p>
-            </div>
-
-            <!-- Bottom Bar -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-white/5">
-                <div class="text-sm text-violet-300/60">
-                    © 2024 Le Bouclier Fiscal. Tous droits réservés.
-                </div>
-                <!-- Social links removed as requested -->
-            </div>
-        </div>
-    </footer>
-
-    <!-- FREE PLAN MODAL -->
-    <div id="free-modal" class="fixed inset-0 z-[60] hidden">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeFreeModal()"></div>
-        
-        <!-- Modal Content -->
-        <div class="relative min-h-screen md:min-h-0 md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[500px] p-6 flex items-center justify-center">
-            <div class="bg-white rounded-3xl shadow-2xl w-full p-8 relative animate-[scaleIn_0.3s_ease-out]">
-                <button onclick="closeFreeModal()" class="absolute top-4 right-4 p-2 text-gray-400 hover:text-dark transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-                
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-4 text-violet-600">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg>
                     </div>
-                    <h3 class="text-2xl font-bold text-dark mb-2">Commencer gratuitement</h3>
-                    <p class="text-gray-500">Choisissez votre option d'accès :</p>
-                </div>
 
-                <div class="space-y-4">
-                    <a href="https://github.com/fiscor/template/raw/main/Bouclier%20Fiscal.pdf" class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-violet-500 hover:bg-violet-50 transition-all group">
-                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 group-hover:bg-violet-200 group-hover:text-violet-700 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <!-- INFO GRID -->
+                    <div class="info-grid">
+                        
+                        <!-- FEATURE CARD (LE SAVIEZ-VOUS) -->
+                        <div class="fun-fact-card">
+                            <span class="fact-label">Le saviez-vous ?</span>
+                            <p class="fact-content">La France conserve sa place de pays le plus taxé au monde avec un taux de prélèvements obligatoires record de 45,4 % du PIB.</p>
+                            <p style="font-size: 16px; opacity: 0.9; margin-bottom: 24px;">C'est pourquoi optimiser chaque dépense déductible est vital pour votre marge.</p>
+                            <button class="btn btn-white" style="background: white; color: var(--primary); align-self: flex-start; border:none; padding: 12px 28px; font-size:14px; font-weight:600;" onclick="navigateTo(event, 'formation')">
+                                Apprendre à optimiser
+                            </button>
                         </div>
-                        <div class="text-left">
-                            <span class="block font-bold text-dark group-hover:text-violet-900">Télécharger le Chapitre 1</span>
-                            <span class="text-xs text-gray-500">PDF, lecture immédiate</span>
-                        </div>
-                        <svg class="w-5 h-5 ml-auto text-gray-300 group-hover:text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </a>
 
-                    <a href="https://fiscor.github.io/free/" target="_blank" class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-violet-500 hover:bg-violet-50 transition-all group">
-                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 group-hover:bg-violet-200 group-hover:text-violet-700 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <!-- PRO TIP -->
+                        <div class="pro-tip-card">
+                            <div>
+                                <div class="tip-header">
+                                    <svg class="tip-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a1 1 0 1 1 1-1 1 1 0 0 1-1 1zm1-4a1 1 0 0 1-2 0V9a1 1 0 0 1 2 0z"/></svg>
+                                    <span class="tip-title">Conseil Pro</span>
+                                </div>
+                                <p class="tip-content">
+                                    Ne confondez jamais votre Chiffre d'Affaires avec votre Bénéfice. 
+                                    <br><br>
+                                    L'argent sur votre compte pro n'est pas votre salaire. Pensez toujours à provisionner vos charges (URSSAF + Impôts) avant de dépenser.
+                                </p>
+                            </div>
+                            <a href="#" onclick="navigateTo(event, 'outils')" style="color: var(--primary); font-weight: 600; text-decoration: none; font-size: 14px; margin-top: 20px; display: inline-block;">Utiliser le simulateur →</a>
                         </div>
-                        <div class="text-left">
-                            <span class="block font-bold text-dark group-hover:text-violet-900">Accéder à la Plateforme</span>
-                            <span class="text-xs text-gray-500">Version gratuite en ligne</span>
+
+                    </div>
+
+                </section>
+
+                <!-- 2. FISCOR AI (CHATBOT SIMULÉ) -->
+                <section id="view-fiscor-ai" class="view-section">
+                    <div style="margin-bottom: 20px;">
+                        <h2 style="font-size: 24px; font-weight: 700; color: var(--text-main);">Assistant Intelligent</h2>
+                        <p style="color: var(--text-secondary);">Posez vos questions fiscales complexes à Fiscor AI.</p>
+                    </div>
+
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chat-messages">
+                            <!-- Initial Bot Message -->
+                            <div class="message bot">
+                                <div class="chat-avatar">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M12 22a2 2 0 0 1 2-2v-2a2 2 0 0 1-2-2 2 2 0 0 1-2 2v2a2 2 0 0 1 2 2z"/><path d="M22 12a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2 2 2 0 0 1 2-2h2a2 2 0 0 1 2 2z"/><path d="M2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><rect x="7" y="7" width="10" height="10" rx="3"/></svg>
+                                </div>
+                                <div class="message-bubble">
+                                    Bonjour. Je suis Fiscor AI. Posez-moi une question sur votre comptabilité ou fiscalité.
+                                </div>
+                            </div>
                         </div>
-                        <svg class="w-5 h-5 ml-auto text-gray-300 group-hover:text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                    </a>
-                </div>
+                        <div class="typing-indicator" id="typing-indicator">Fiscor AI est en train d'écrire...</div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input" class="chat-input" placeholder="Posez votre question ici..." onkeypress="handleChatKey(event)">
+                            <button class="send-btn" onclick="sendChatMessage()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. FORMATION (DYNAMIC RENDER) -->
+                <section id="view-formation" class="view-section">
+                    <div style="margin-bottom: 40px;">
+                        <h2 style="font-size: 28px; font-weight: 700; color: var(--text-main); margin-bottom: 12px; letter-spacing: -0.5px;">Centre de Formation</h2>
+                        <p style="color: var(--text-secondary); max-width: 600px; font-size: 16px;">
+                            Une académie complète pour entrepreneurs : maîtrisez chaque aspect de votre gestion sans jargon complexe.
+                        </p>
+                    </div>
+                    <!-- Content generated by JS -->
+                    <div id="formations-container"></div>
+                </section>
+
+                <!-- 4. OUTILS (DYNAMIC RENDER) -->
+                <section id="view-outils" class="view-section">
+                    <div style="margin-bottom: 40px;">
+                        <h2 style="font-size: 28px; font-weight: 700; color: var(--text-main); margin-bottom: 12px; letter-spacing: -0.5px;">Boîte à Outils</h2>
+                        <p style="color: var(--text-secondary); max-width: 600px; font-size: 16px;">
+                            Une suite complète d'outils intelligents pour simplifier votre gestion, facturer plus vite et sécuriser votre activité.
+                        </p>
+                    </div>
+                    <!-- Content generated by JS -->
+                    <div id="tools-container"></div>
+                </section>
+
+                <!-- 5. TEMPLATES (DYNAMIC RENDER) -->
+                <section id="view-templates" class="view-section">
+                    <div style="margin-bottom: 40px;">
+                        <h2 style="font-size: 28px; font-weight: 700; color: var(--text-main); margin-bottom: 12px; letter-spacing: -0.5px;">Bibliothèque de Documents</h2>
+                        <p style="color: var(--text-secondary); max-width: 600px; font-size: 16px;">
+                            Une collection premium de guides, mémos et modèles prêts à l'emploi.
+                        </p>
+                    </div>
+                    <!-- Content generated by JS -->
+                    <div id="templates-container"></div>
+                </section>
+
+                <!-- 6. AIDE (CONTACT INFOS) -->
+                <section id="view-aide" class="view-section">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <h2 class="construction-title">Support Expert</h2>
+                        <p class="construction-text" style="margin: 0 auto;">Notre équipe est disponible pour vous accompagner personnellement.</p>
+                    </div>
+
+                    <div class="contact-grid">
+                        <!-- Phone Card -->
+                        <div class="contact-card">
+                            <div class="contact-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.12 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                            </div>
+                            <span class="contact-value">+33 07 44 80 14 99</span>
+                            <span class="contact-label">Ligne directe fondateur</span>
+                            <button class="btn btn-primary" style="margin-top: 24px; width: 100%;" onclick="window.location.href='tel:+33744801499'">Appeler maintenant</button>
+                        </div>
+
+                        <!-- Email Card -->
+                        <div class="contact-card">
+                            <div class="contact-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            </div>
+                            <span class="contact-value">fiscor@proton.me</span>
+                            <span class="contact-label">Support Email Priority</span>
+                            <button class="btn btn-primary" style="margin-top: 24px; width: 100%;" onclick="window.location.href='mailto:fiscor@proton.me'">Envoyer un email</button>
+                        </div>
+                    </div>
+                </section>
+
             </div>
-        </div>
+        </main>
     </div>
 
-    <!-- AUTH MODAL -->
-    <div id="auth-modal" class="fixed inset-0 z-[100] hidden">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity" id="auth-backdrop"></div>
-        
-        <!-- Modal Content -->
-        <div class="relative min-h-screen md:min-h-0 md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[420px] p-4 flex items-center justify-center">
-            <div class="bg-white rounded-3xl shadow-2xl w-full p-8 relative animate-[scaleIn_0.3s_ease-out]">
-                <button id="auth-close-btn" class="absolute top-4 right-4 p-2 text-gray-400 hover:text-dark transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-                
-                <div class="text-center mb-6">
-                    <img src="logo.png" alt="Le Bouclier Fiscal" class="w-12 h-12 rounded-xl mx-auto mb-4 shadow-sm object-contain">
-                    <h3 id="auth-title" class="text-2xl font-bold text-dark">Connexion</h3>
-                    <p id="auth-subtitle" class="text-sm text-gray-500 mt-1">Accédez à votre espace fiscal</p>
-                </div>
+    <script>
+        // --- DATA SOURCES ---
 
-                <!-- Google Button -->
-                <button id="google-auth-btn" class="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-3 px-4 rounded-xl transition-all duration-200 mb-6 group hover:shadow-sm hover:border-gray-300">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                    <span>Continuer avec Google</span>
-                </button>
+        const TEMPLATES_DATA = [
+             {
+                category: "Packs de Démarrage",
+                icon: `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>`,
+                items: [
+                    { id: 'pack-micro', title: "Pack Démarrage Micro", desc: "Le kit complet : modèles de devis, factures, livre des recettes et guide Urssaf.", action: "Télécharger Pack", icon: `<circle cx="12" cy="12" r="10"></circle><path d="M8 12h8"></path>` },
+                    { id: 'pack-sas', title: "Pack Démarrage SASU", desc: "Statuts types, PV de nomination, modèle de note de frais et fiche de paie président.", action: "Télécharger Pack", icon: `<circle cx="12" cy="12" r="10"></circle><path d="M12 8v8"></path><path d="M8 12h8"></path>` }
+                ]
+            },
+            {
+                category: "Guides & Mémos PDF",
+                icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>`,
+                items: [
+                    { id: 'memo-tva', title: "Mémo TVA 2024", desc: "Une page A4 pour tout savoir : seuils, taux, dates et mentions obligatoires.", action: "Télécharger PDF", icon: `<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline>` },
+                    { id: 'memo-charges', title: "Liste Charges Déductibles", desc: "La liste exhaustive de ce que vous pouvez passer en frais pro (et ce qui est interdit).", action: "Télécharger PDF", icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>` }
+                ]
+            },
+            {
+                category: "Modèles Administratifs",
+                icon: `<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>`,
+                items: [
+                    { id: 'modele-courrier', title: "Modèles de Courriers", desc: "Mise en demeure, demande de remise gracieuse impôts, résiliation de contrat.", action: "Voir modèles", icon: `<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>` }
+                ]
+            }
+        ];
 
-                <div class="relative flex py-2 items-center mb-6">
-                    <div class="flex-grow border-t border-gray-100"></div>
-                    <span class="flex-shrink mx-4 text-gray-300 text-xs font-semibold uppercase">ou email</span>
-                    <div class="flex-grow border-t border-gray-100"></div>
-                </div>
+        const TOOLS_DATA = [
+            {
+                category: "Pilotage & Fiscalité",
+                icon: `<path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>`,
+                items: [
+                    { id: 'scorefiscal', title: "Score Fiscal Fiscor", desc: "Évaluez votre santé fiscale sur 100 et obtenez un plan d'action personnalisé.", action: "Calculer mon score", icon: `<path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>` },
+                    { id: 'diagnostic', title: "Diagnostic \"Risques & Pertes\"", desc: "Identifiez les erreurs probables dans votre gestion et estimez vos coûts cachés.", action: "Lancer le diagnostic", icon: `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>` },
+                    { id: 'radar', title: "Radar Échéances", desc: "Visualisez vos dates clés (URSSAF, TVA, CFE) et activez les rappels automatiques.", action: "Voir mon radar", icon: `<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>` },
+                    { id: 'simulateur', title: "Simulateur Épargne", desc: "Combien mettre de côté ? Calculez vos provisions mensuelles idéales.", action: "Simuler maintenant", icon: `<rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="2" y1="16" x2="22" y2="16"/><line x1="12" y1="10" x2="12" y2="16"/>` },
+                    { id: 'assistant', title: "Assistant \"Priorités\"", desc: "Que faire maintenant ? Une checklist dynamique intelligente pour ne rien oublier.", action: "Voir ma liste", icon: `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>` },
+                    { id: 'analyseur', title: "Analyseur de Situation", desc: "Micro, Réel ou Société ? Obtenez une recommandation de statut sur mesure.", action: "Analyser mon statut", icon: `<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>` },
+                    { id: 'conformite', title: "Plan de Conformité", desc: "Un parcours guidé étape par étape pour blinder juridiquement votre activité.", action: "Sécuriser mon activité", icon: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>` },
+                    { id: 'timeline', title: "Timeline Entreprise", desc: "De la création aux bascules de régimes : visualisez votre historique et votre futur.", action: "Voir ma timeline", icon: `<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>` },
+                    { id: 'audit', title: "Audit \"Documents Manquants\"", desc: "La liste ultime des preuves à conserver pour être serein en cas de contrôle.", action: "Vérifier mes documents", icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>` }
+                ]
+            },
+            {
+                category: "Facturation & Commercial",
+                icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>`,
+                items: [
+                    { id: 'facture', title: "Générateur de Facture", desc: "Créez des factures professionnelles et conformes en quelques clics. Export PDF instantané.", action: "Créer une facture", icon: `<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline>` },
+                    { id: 'devis', title: "Devis → Facture", desc: "Transformez vos devis validés en factures sans ressaisie. Duplication intelligente.", action: "Convertir un devis", icon: `<polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>` },
+                    { id: 'avoir', title: "Avoir / Note de Crédit", desc: "Annulez partiellement ou totalement une facture avec un avoir conforme à la loi.", action: "Créer un avoir", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line>` },
+                    { id: 'acompte', title: "Facture d'Acompte & Solde", desc: "Gérez les paiements échelonnés : acompte initial et facture de clôture liées.", action: "Gérer un acompte", icon: `<path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>` },
+                    { id: 'export', title: "Facture Export", desc: "Facturez hors France (UE/Hors UE) avec les bonnes mentions de TVA (Art 259/262).", action: "Facturer à l'étranger", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>` },
+                    { id: 'intracom', title: "Facture Intracom", desc: "Gestion spécifique des livraisons intracommunautaires et autoliquidation de TVA.", action: "Facture UE", icon: `<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line>` },
+                    { id: 'relance', title: "Relance Impayé", desc: "Générez des mails et courriers de relance graduels pour être payé plus vite.", action: "Relancer un client", icon: `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>` },
+                    { id: 'mise-en-demeure', title: "Mise en Demeure", desc: "L'étape juridique avant contentieux. Modèle formel prêt à l'emploi et certifié.", action: "Générer le courrier", icon: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>` },
+                    { id: 'registre', title: "Registre des Ventes", desc: "Votre journal chronologique obligatoire, généré automatiquement depuis vos factures.", action: "Voir mon registre", icon: `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>` },
+                    { id: 'numerotation', title: "Numéroteur Intelligent", desc: "Configurez vos règles de numérotation (préfixes, années) pour une chronologie sans faille.", action: "Configurer", icon: `<line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line>` },
+                    { id: 'mentions', title: "Mentions Légales Builder", desc: "Générez les mentions obligatoires adaptées à votre statut juridique pour vos pieds de page.", action: "Générer mentions", icon: `<path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle>` },
+                    { id: 'produits', title: "Bibliothèque Produits", desc: "Centralisez vos articles, tarifs et taux de TVA pour facturer plus vite sans erreur.", action: "Gérer mon catalogue", icon: `<line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>` },
+                    { id: 'cgv', title: "Générateur de CGV", desc: "Créez vos Conditions Générales de Vente par blocs modulaires selon votre activité.", action: "Créer mes CGV", icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 15l2 2 4-4"></path>` },
+                    { id: 'signature', title: "Signature de Devis", desc: "Module de signature \"Bon pour accord\" numérique pour vos devis dématérialisés.", action: "Signer un document", icon: `<path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line>` }
+                ]
+            },
+            {
+                category: "Gestion de la TVA",
+                icon: `<line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle>`,
+                items: [
+                    { id: 'tva-seuil', title: "Seuil TVA Tracker", desc: "Suivez votre CA glissant et recevez des alertes avant de dépasser les seuils de franchise.", action: "Suivre mes seuils", icon: `<line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><line x1="4" y1="9" x2="20" y2="9" style="stroke-dasharray: 4; stroke: #EF4444;"></line>` },
+                    { id: 'tva-calc', title: "Calculateur TVA Net", desc: "Saisissez votre TVA collectée et déductible pour connaître le montant exact à payer.", action: "Calculer", icon: `<rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>` },
+                    { id: 'tva-inverse', title: "Calculateur \"HT vs TTC\"", desc: "Passez du HT au TTC (et inversement) instantanément avec les bons taux.", action: "Convertir", icon: `<polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line>` },
+                    { id: 'tva-declaration', title: "Générateur Déclaration", desc: "Obtenez un résumé prêt à copier-coller pour remplir votre déclaration sur impots.gouv.", action: "Générer", icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>` },
+                    { id: 'tva-checklist', title: "Checklist Déclaration", desc: "La liste de contrôle mensuelle/trimestrielle pour ne rien oublier avant de valider.", action: "Vérifier", icon: `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>` },
+                    { id: 'tva-mentions', title: "Mentions \"Sans TVA\"", desc: "Trouvez la mention légale exacte à apposer (Franchise en base, Art 293B, Export, etc.).", action: "Trouver la mention", icon: `<path d="M20 6L9 17l-5-5"></path>` },
+                    { id: 'tva-auto', title: "Autoliquidation UE", desc: "Assistant de saisie pour vos achats de services dans l'UE (Google, Facebook Ads, etc.).", action: "Gérer l'autoliquidation", icon: `<circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>` },
+                    { id: 'tva-export', title: "TVA Export Hors UE", desc: "Assistant pour valider les preuves d'exportation et sécuriser vos ventes hors UE.", action: "Sécuriser export", icon: `<path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path>` },
+                    { id: 'tva-ecommerce', title: "TVA E-commerce", desc: "Comprendre les seuils (OSS/IOSS) et la logique de TVA pour la vente en ligne.", action: "Analyser", icon: `<circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>` },
+                    { id: 'tva-tableau', title: "Tableau de Suivi TVA", desc: "Une interface simple type tableur pour lister vos entrées/sorties de TVA.", action: "Ouvrir le tableau", icon: `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line>` },
+                    { id: 'tva-rattrapage', title: "Rattrapage TVA", desc: "Vous avez oublié de déclarer ? Voici les étapes pour régulariser sans panique.", action: "Régulariser", icon: `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>` },
+                    { id: 'tva-prix', title: "Simulateur Impact Prix", desc: "Visualisez l'impact du passage à la TVA sur votre marge et vos prix clients.", action: "Simuler impact", icon: `<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>` }
+                ]
+            },
+            {
+                category: "Cotisations & URSSAF",
+                icon: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>`,
+                items: [
+                    { id: 'urssaf-simul', title: "Simulateur Charges Micro", desc: "Estimez vos cotisations sociales en fonction de votre CA et de votre activité (ACRE incluse).", action: "Calculer charges", icon: `<path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>` },
+                    { id: 'urssaf-calendar', title: "Calendrier URSSAF", desc: "Vos échéances déclaratives (mensuelles ou trimestrielles) en un coup d'œil.", action: "Voir échéances", icon: `<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>` },
+                    { id: 'urssaf-aide', title: "Aide à la Déclaration", desc: "Guide pas-à-pas pour remplir votre déclaration de chiffre d'affaires sans erreur.", action: "M'aider à déclarer", icon: `<circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line>` },
+                    { id: 'urssaf-provision', title: "Provision URSSAF", desc: "Sachez exactement combien mettre de côté chaque mois pour payer vos charges.", action: "Calculer provisions", icon: `<rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="2" y1="16" x2="22" y2="16"/><line x1="12" y1="10" x2="12" y2="16"/>` },
+                    { id: 'urssaf-regul', title: "Régularisation N+1", desc: "Anticipez le choc de régularisation l'année suivante (pour les régimes réels/TNS).", action: "Anticiper", icon: `<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>` },
+                    { id: 'urssaf-penalites', title: "Tracker Pénalités", desc: "Estimez le coût d'un retard de déclaration ou de paiement (majorations).", action: "Estimer coût", icon: `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>` },
+                    { id: 'urssaf-journal', title: "Journal des Déclarations", desc: "Gardez une trace propre de vos dates, montants déclarés et numéros de récépissés.", action: "Voir historique", icon: `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>` },
+                    { id: 'urssaf-scam', title: "Pack Anti-Scam", desc: "Ne vous faites pas avoir. Exemples de faux courriers URSSAF/RSI et checklist de vérification.", action: "Vérifier courrier", icon: `<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>` }
+                ]
+            },
+            {
+                category: "Fiscalité & Impôts",
+                icon: `<rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>`,
+                items: [
+                    { id: 'impot-simul', title: "Simulateur Impôt", desc: "Estimez l'ordre de grandeur de votre impôt sur le revenu à partir de votre bénéfice.", action: "Estimer mon impôt", icon: `<path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>` },
+                    { id: 'bnc-bic', title: "Calculateur BNC vs BIC", desc: "Service ou Achat-revente ? Un questionnaire rapide pour définir votre catégorie fiscale.", action: "Identifier catégorie", icon: `<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>` },
+                    { id: 'charges', title: "Outil Charges Déductibles", desc: "Bibliothèque de frais professionnels avec score de confiance et risque de redressement.", action: "Vérifier une dépense", icon: `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>` },
+                    { id: 'depense-eval', title: "Évaluateur Dépense", desc: "Puis-je passer ça en frais ? Un système de feu vert/orange/rouge basé sur la jurisprudence.", action: "Scanner ma dépense", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>` },
+                    { id: 'remuneration-simul', title: "Salaire vs Dividendes", desc: "Simulateur pédagogique pour optimiser votre sortie d'argent (SASU/EURL).", action: "Optimiser revenus", icon: `<path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path>` },
+                    { id: 'regime-choice', title: "Choix de Régime", desc: "Micro, Réel ou Société ? Un arbre de décision intelligent pour faire le bon choix.", action: "Comparer régimes", icon: `<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>` },
+                    { id: 'cfe-helper', title: "CFE Helper", desc: "Comprenez la Cotisation Foncière des Entreprises, quand la payer et combien.", action: "Estimer CFE", icon: `<rect x="3" y="21" width="18" height="2" rx="1" ry="1"></rect><path d="M5 21V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14"></path><path d="M9 10a2 2 0 1 1-4 0v-4h4v4z"></path><path d="M19 10a2 2 0 1 1-4 0v-4h4v4z"></path>` },
+                    { id: 'impot-provision', title: "Provision Impôts", desc: "Mensualisez vous-même votre impôt sur le revenu pour ne jamais être à découvert.", action: "Calculer provisions", icon: `<path d="M19 5c-1.5 0-2.8 0.6-3.8 1.5l-2.5 2.5-3.2-3.2c-0.6-0.6-1.5-1-2.4-0.9C5.7 4.9 4.9 5.6 4.9 7c0 0.9 0.4 1.7 1 2.4l3.2 3.2-2.5 2.5C5.6 16.2 5 17.5 5 19s0.6 2.8 1.5 3.8c0.9 0.9 2.2 1.5 3.8 1.5s2.8-0.6 3.8-1.5l2.5-2.5 3.2 3.2c0.6 0.6 1.5 1 2.4 0.9 1.4-0.1 2.2-0.8 2.2-2.2 0-0.9-0.4-1.7-1-2.4l-3.2-3.2 2.5-2.5C23.4 12.8 24 11.5 24 10s-0.6-2.8-1.5-3.8c-0.9-0.9-2.2-1.5-3.8-1.5zM15.5 6.5l2 2-2 2-2-2 2-2zM8.5 13.5l2 2-2 2-2-2 2-2z"></path>` }
+                ]
+            },
+            {
+                category: "Gestion & Comptabilité",
+                icon: `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line>`,
+                items: [
+                    { id: 'tableur', title: "Mini Tableur Fiscor", desc: "Un tableur simplifié pour vos calculs rapides. Formules basiques et export CSV.", action: "Ouvrir tableur", icon: `<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line>` },
+                    { id: 'budget', title: "Budget Pro", desc: "Planifiez vos entrées et sorties par catégories pour maîtriser votre rentabilité.", action: "Faire mon budget", icon: `<path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>` },
+                    { id: 'treso', title: "Tableau de Trésorerie", desc: "Anticipez vos fins de mois sur 6 mois pour éviter les trous de trésorerie.", action: "Voir prévisions", icon: `<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>` },
+                    { id: 'journal-achats', title: "Journal des Achats", desc: "Suivez vos dépenses et calculez automatiquement votre TVA déductible.", action: "Lister achats", icon: `<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path>` },
+                    { id: 'suivi-ca', title: "Suivi CA & Objectifs", desc: "Visualisez votre chiffre d'affaires mensuel, cumulé et votre progression vers l'objectif.", action: "Suivre mon CA", icon: `<line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line>` },
+                    { id: 'marge', title: "Suivi de Marge", desc: "Calculez la rentabilité réelle de chaque produit ou service vendu.", action: "Calculer marge", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line>` },
+                    { id: 'import-csv', title: "Import & Nettoyage CSV", desc: "Importez vos relevés bancaires et mappez les colonnes intelligemment.", action: "Importer fichier", icon: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>` },
+                    { id: 'bilan', title: "Export Bilan Simplifié", desc: "Générez un résumé PDF propre de votre année comptable pour votre banquier.", action: "Générer bilan", icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>` }
+                ]
+            },
+            {
+                category: "Vie de la Société & Juridique",
+                icon: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>`,
+                items: [
+                    { id: 'creation-wizard', title: "Wizard \"Créer une société\"", desc: "L'assistant ultime étape par étape pour immatriculer votre entreprise sans erreur.", action: "Lancer création", icon: `<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>` },
+                    { id: 'statut-compare', title: "Comparateur SASU vs EURL", desc: "Le duel final. Répondez au questionnaire pour savoir quel statut vous convient.", action: "Comparer", icon: `<path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path>` },
+                    { id: 'checklist-creation', title: "Checklists de Création", desc: "Ne manquez aucune étape : banque, statuts, annonce légale, dépôt au greffe.", action: "Voir checklist", icon: `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>` },
+                    { id: 'pv-generator', title: "Générateur PV Assemblée", desc: "Créez vos PV de décision d'associé unique (rémunération, approbation comptes) en 1 clic.", action: "Rédiger PV", icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>` },
+                    { id: 'attestation-depot', title: "Attestation de Dépôt", desc: "Générez une attestation de dépôt de capital conforme pour votre banque.", action: "Générer", icon: `<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>` },
+                    { id: 'remu-pedago', title: "Outil Rémunération", desc: "Scénarios pédagogiques pour comprendre combien vous pouvez vous verser net.", action: "Simuler salaire", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>` },
+                    { id: 'dividendes', title: "Outil Dividendes", desc: "Flat tax ou barème progressif ? Calculez ce qui reste dans votre poche.", action: "Simuler dividendes", icon: `<path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>` },
+                    { id: 'micro-to-soc', title: "Passage Micro → Société", desc: "La checklist de transition : ce qui change, ce qui casse et ce qu'il faut préparer.", action: "Préparer transition", icon: `<line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>` }
+                ]
+            },
+            {
+                category: "International & Export",
+                icon: `<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>`,
+                items: [
+                    { id: 'facture-inter', title: "Facturation International", desc: "Assistant pour émettre des factures conformes vers l'UE et hors UE.", action: "Facturer export", icon: `<path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path>` },
+                    { id: 'export-preuves', title: "Checklist Preuves Export", desc: "Liste des justificatifs à conserver pour prouver l'exonération de TVA à l'export.", action: "Vérifier preuves", icon: `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>` },
+                    { id: 'mentions-inter', title: "Mentions Légales Multi-pays", desc: "Les phrases magiques à mettre sur vos factures selon le pays du client.", action: "Générer mentions", icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>` },
+                    { id: 'devises', title: "Tracker Devises & Marge", desc: "Surveillez l'impact du taux de change (USD/GBP) sur votre marge réelle.", action: "Suivre taux", icon: `<path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>` },
+                    { id: 'guide-intracom', title: "Guide TVA Intracom", desc: "Procédures, Déclaration d'Échanges de Services (DES)... tout pour être en règle.", action: "Consulter guide", icon: `<circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path>` },
+                    { id: 'facture-en', title: "Générateur Facture Anglais", desc: "Invoice Generator : créez une facture parfaite en anglais pour vos clients étrangers.", action: "Create Invoice", icon: `<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line>` },
+                    { id: 'client-etranger', title: "Assistant Client US / UE", desc: "Sélectionnez la zone géographique de votre client pour savoir quelles règles appliquer.", action: "Lancer assistant", icon: `<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>` }
+                ]
+            }
+        ];
 
-                <!-- Email Form -->
-                <form id="auth-form" class="space-y-4">
-                    <div>
-                        <label for="email" class="block text-xs font-medium text-gray-700 mb-1 ml-1">Adresse Email</label>
-                        <input type="email" id="email" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition-all text-sm" placeholder="jean.dupont@exemple.com">
+        // --- RENDER LOGIC ---
+        function renderSection(data, containerId) {
+            const container = document.getElementById(containerId);
+            if(!container) return;
+            
+            let html = '';
+
+            data.forEach(section => {
+                html += `
+                    <div class="section-header">
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${section.icon}</svg>
+                        <h3 class="section-title">${section.category}</h3>
                     </div>
-                    <div>
-                        <label for="password" class="block text-xs font-medium text-gray-700 mb-1 ml-1">Mot de passe</label>
-                        <input type="password" id="password" required class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition-all text-sm" placeholder="••••••••">
-                    </div>
+                    <div class="tools-grid">
+                `;
+
+                section.items.forEach(item => {
+                    const link = item.link || (item.id.includes('.') ? item.id : item.id + '.html');
                     
-                    <div id="auth-error" class="hidden text-xs text-red-500 bg-red-50 p-3 rounded-lg border border-red-100"></div>
+                    let finalLink = link;
+                    let onclickAttr = '';
 
-                    <button type="submit" id="submit-auth-btn" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-violet-200 transition-all hover:scale-[1.02] active:scale-95 text-sm">
-                        Se connecter
-                    </button>
-                </form>
+                    if(containerId === 'templates-container') {
+                        finalLink = '#';
+                        onclickAttr = `onclick="alert('Ce document sera bientôt disponible.'); return false;"`;
+                    }
 
-                <div class="mt-6 text-center">
-                    <p class="text-sm text-gray-500">
-                        <span id="auth-switch-text">Pas encore de compte ?</span>
-                        <button id="auth-switch-btn" class="text-violet-600 font-bold hover:underline ml-1">Créer un compte</button>
-                    </p>
+                    html += `
+                        <a href="${finalLink}" class="tool-card" ${onclickAttr}>
+                            <div class="tool-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${item.icon}</svg>
+                            </div>
+                            <h3 class="tool-title">${item.title}</h3>
+                            <p class="tool-desc">${item.desc}</p>
+                            <div class="tool-action">
+                                ${item.action}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </div>
+                        </a>
+                    `;
+                });
+
+                html += `</div>`; // Close grid
+            });
+
+            container.innerHTML = html;
+        }
+
+        // --- NAVIGATION LOGIC (SPA) ---
+        
+        function navigateTo(event, viewId) {
+            if(event) event.preventDefault();
+            
+            const titles = {
+                'accueil': 'Accueil',
+                'fiscor-ai': 'Fiscor AI',
+                'formation': 'Formation',
+                'outils': 'Outils',
+                'templates': 'Templates',
+                'aide': 'Aide'
+            };
+            document.getElementById('page-title').textContent = titles[viewId] || 'Fiscor';
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const activeLinks = document.querySelectorAll(`.nav-item[onclick*="'${viewId}'"]`);
+            activeLinks.forEach(link => link.classList.add('active'));
+
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            const target = document.getElementById('view-' + viewId);
+            if (target) {
+                target.classList.add('active');
+            }
+
+            if (window.innerWidth <= 1024) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // --- FISCOR AI SIMULATION ---
+        
+        function triggerFakeAI() {
+            const overlay = document.getElementById('fiscor-ai-overlay');
+            const statusText = document.getElementById('ai-status-text');
+            
+            const steps = [
+                "Connexion sécurisée à Fiscor AI...",
+                "Analyse du contexte...",
+                "Traitement de la demande...",
+                "Finalisation..."
+            ];
+
+            overlay.classList.add('active');
+            
+            let stepIndex = 0;
+            statusText.textContent = steps[0]; 
+            
+            const interval = setInterval(() => {
+                stepIndex++;
+                if (stepIndex < steps.length) {
+                    statusText.textContent = steps[stepIndex];
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        overlay.classList.remove('active');
+                    }, 600);
+                }
+            }, 800);
+        }
+
+        // --- CHATBOT LOGIC ---
+
+        function handleChatKey(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatMessages = document.getElementById('chat-messages');
+            
+            // Add User Message
+            const userMsgHTML = `
+                <div class="message user">
+                    <div class="chat-avatar">JM</div>
+                    <div class="message-bubble">${message}</div>
                 </div>
-            </div>
-        </div>
-    </div>
+            `;
+            chatMessages.insertAdjacentHTML('beforeend', userMsgHTML);
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    <!-- SCRIPTS -->
+            // Simulate Typing
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            setTimeout(() => {
+                typingIndicator.style.display = 'none';
+                
+                // Add empty Bot Response Bubble
+                const botMsgID = 'bot-msg-' + Date.now();
+                const botMsgHTML = `
+                    <div class="message bot">
+                        <div class="chat-avatar">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M12 22a2 2 0 0 1 2-2v-2a2 2 0 0 1-2-2 2 2 0 0 1-2 2v2a2 2 0 0 1 2 2z"/><path d="M22 12a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2 2 2 0 0 1 2 2h2a2 2 0 0 1 2 2z"/><path d="M2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><rect x="7" y="7" width="10" height="10" rx="3"/></svg>
+                        </div>
+                        <div class="message-bubble" id="${botMsgID}"></div>
+                    </div>
+                `;
+                chatMessages.insertAdjacentHTML('beforeend', botMsgHTML);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                // Typewriter Effect
+                const responseText = "Je suis flatté que vous me sollicitiez ! Je suis actuellement en phase d'apprentissage intensif pour devenir le meilleur expert-comptable virtuel. Cette fonctionnalité sera disponible très prochainement. Merci de votre patience.";
+                const bubbleElement = document.getElementById(botMsgID);
+                
+                let i = 0;
+                function typeWriter() {
+                    if (i < responseText.length) {
+                        bubbleElement.innerHTML += responseText.charAt(i);
+                        i++;
+                        chatMessages.scrollTop = chatMessages.scrollHeight; // Keep scrolling
+                        setTimeout(typeWriter, 20); // Speed of typing
+                    }
+                }
+                typeWriter();
+
+            }, 1500);
+        }
+
+        // --- HELP MODAL LOGIC ---
+
+        function toggleHelpModal() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.toggle('open');
+        }
+
+        function copyToClipboard(element, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Visual feedback
+                const originalBg = element.style.backgroundColor;
+                element.style.backgroundColor = '#F3E8FF';
+                element.style.borderColor = '#7C3AED';
+                
+                const hint = element.querySelector('.copy-hint');
+                const originalText = hint.textContent;
+                hint.textContent = 'COPIÉ !';
+                hint.style.opacity = '1';
+
+                setTimeout(() => {
+                    element.style.backgroundColor = originalBg;
+                    element.style.borderColor = '';
+                    hint.textContent = originalText;
+                    hint.style.opacity = '';
+                }, 1500);
+            });
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('help-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                toggleHelpModal();
+            }
+        });
+
+        // INIT UI RENDER
+        renderSection(TOOLS_DATA, 'tools-container');
+        renderSection(FORMATIONS_DATA, 'formations-container');
+        renderSection(TEMPLATES_DATA, 'templates-container');
+
+    </script>
+
+    <!-- FIREBASE & AUTH LOGIC -->
     <script type="module">
-        // Import Firebase Functions
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getAuth, 
-            signInWithPopup, 
-            GoogleAuthProvider,
-            signInWithEmailAndPassword,
-            createUserWithEmailAndPassword,
-            onAuthStateChanged,
-            signOut
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        // Import Firestore functions for user profile and access control
-        import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            setDoc, 
-            serverTimestamp
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // ACCESS CONTROL PATCH
-        //
-        // This patch adds Firestore integration and dynamic access control
-        // without altering the existing HTML structure.  It performs the
-        // following actions:
-        //   • Imports Firestore helpers to read/write the authenticated
-        //     user's profile document.
-        //   • Defines a PREMIUM_URL constant; when a user has
-        //     `saasAccess === true` in Firestore, the “Mon Espace” link
-        //     is updated to point here.  Otherwise it stays on the free
-        //     platform specified in the markup.
-        //   • Creates a default user document on first login with
-        //     `plan: 'free'` and `saasAccess: false`.
-        //   • Monitors auth state changes to toggle the login button and
-        //     user area and to update the link based on Firestore data.
-        //   • Simplifies Google login handling to avoid accessing
-        //     `credential.accessToken`, which can be unavailable and cause
-        //     runtime errors.  All UI changes occur in the auth state
-        //     observer instead.
-        const PREMIUM_URL = "https://fiscor.github.io/app/";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyCBRfYL47WBzd1RzDfoRxwwBtrOr4wYZeQ",
-            authDomain: "fiscor-90c09.firebaseapp.com",
-            projectId: "fiscor-90c09",
-            storageBucket: "fiscor-90c09.firebasestorage.app",
-            messagingSenderId: "255294631895",
-            appId: "1:255294631895:web:43c321dc799ffa7cffe592",
-            measurementId: "G-VB1M9BVZZP"
+          apiKey: "AIzaSyCBRfYL47WBzd1RzDfoRxwwBtrOr4wYZeQ",
+          authDomain: "fiscor-90c09.firebaseapp.com",
+          projectId: "fiscor-90c09",
+          storageBucket: "fiscor-90c09.firebasestorage.app",
+          messagingSenderId: "255294631895",
+          appId: "1:255294631895:web:43c321dc799ffa7cffe592",
+          measurementId: "G-VB1M9BVZZP"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        const db = getFirestore(app);
 
-        // --- UI ELEMENTS ---
-        const authModal = document.getElementById('auth-modal');
-        const authBackdrop = document.getElementById('auth-backdrop');
-        const authCloseBtn = document.getElementById('auth-close-btn');
-        const navLoginBtn = document.getElementById('nav-login-btn');
-        const mobileLoginBtn = document.getElementById('mobile-login-btn');
-        const navUserArea = document.getElementById('nav-user-area');
+        // Elements
+        const splashScreen = document.getElementById('splash-screen');
+        const premiumGate = document.getElementById('premium-gate');
+        const loginCard = document.getElementById('gate-login-card');
+        const errorCard = document.getElementById('gate-error-card');
+        const loginGoogleBtn = document.getElementById('btn-login-google');
+        const loginEmailBtn = document.getElementById('btn-login-email');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
 
-        // Grab the “Mon Espace” link inside the user area.  This anchor exists
-        // in the markup and points to the free platform by default.  We
-        // preserve its initial href so we can fall back safely if Firestore
-        // queries fail.
-        const monEspaceLink = navUserArea ? navUserArea.querySelector('a') : null;
-        const DEFAULT_FREE_URL = monEspaceLink ? monEspaceLink.getAttribute('href') : "https://fiscor.github.io/free/";
-        const navLogoutBtn = document.getElementById('nav-logout-btn');
-        
-        const authTitle = document.getElementById('auth-title');
-        const authSubtitle = document.getElementById('auth-subtitle');
-        const authForm = document.getElementById('auth-form');
-        const submitAuthBtn = document.getElementById('submit-auth-btn');
-        const authSwitchText = document.getElementById('auth-switch-text');
-        const authSwitchBtn = document.getElementById('auth-switch-btn');
-        const googleAuthBtn = document.getElementById('google-auth-btn');
-        const authError = document.getElementById('auth-error');
+        // Logic
+        async function checkAccess() {
+            // Wait for splash animation minimum time (2.5s) + buffer
+            await new Promise(r => setTimeout(r, 2800));
 
-        // State
-        let isLoginMode = true;
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    // Logged in -> Check Firestore
+                    try {
+                        const docRef = doc(db, "users", user.uid);
+                        const docSnap = await getDoc(docRef);
 
-        // --- AUTH STATE OBSERVER ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // User is signed in
-                console.log("User connected:", user.email);
-                navLoginBtn.classList.add('hidden');
-                navUserArea.classList.remove('hidden');
-                navUserArea.classList.add('flex');
-
-                // Close modal if open
-                closeAuthModal();
-
-                // Ensure the user profile exists in Firestore and set the
-                // destination of the “Mon Espace” link according to the
-                // saasAccess flag.  Any errors fallback to the default free URL.
-                try {
-                    const db = getFirestore(app);
-                    const userRef = doc(db, 'users', user.uid);
-                    const snap = await getDoc(userRef);
-                    if (!snap.exists()) {
-                        // Create user document with default values.  Do not allow the
-                        // client to set plan or saasAccess beyond these defaults.
-                        await setDoc(userRef, {
-                            email: user.email ?? null,
-                            plan: 'free',
-                            saasAccess: false,
-                            createdAt: serverTimestamp()
-                        });
-                        if (monEspaceLink) {
-                            monEspaceLink.href = DEFAULT_FREE_URL;
+                        if (docSnap.exists() && docSnap.data().saasAccess === true) {
+                            // ACCESS GRANTED
+                            fadeOutSplash();
+                        } else {
+                            // ACCESS DENIED (Not Premium)
+                            showGate(false); 
                         }
-                    } else {
-                        const data = snap.data() || {};
-                        if (monEspaceLink) {
-                            if (data.saasAccess === true) {
-                                monEspaceLink.href = PREMIUM_URL;
-                            } else {
-                                monEspaceLink.href = DEFAULT_FREE_URL;
-                            }
-                        }
+                    } catch (error) {
+                        console.error("Error verifying access:", error);
+                        showGate(false);
                     }
-                } catch (error) {
-                    console.error('Error accessing Firestore', error);
-                    if (monEspaceLink) {
-                        monEspaceLink.href = DEFAULT_FREE_URL;
-                    }
-                }
-            } else {
-                // User is signed out
-                navLoginBtn.classList.remove('hidden');
-                navUserArea.classList.add('hidden');
-                navUserArea.classList.remove('flex');
-                // Reset link to default free when logged out
-                if (monEspaceLink) {
-                    monEspaceLink.href = DEFAULT_FREE_URL;
-                }
-            }
-        });
-
-        // --- FUNCTIONS ---
-
-        function openAuthModal() {
-            authModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            resetForm();
-        }
-
-        function closeAuthModal() {
-            authModal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
-            authError.classList.add('hidden');
-            
-            if (isLoginMode) {
-                authTitle.textContent = "Connexion";
-                authSubtitle.textContent = "Accédez à votre espace fiscal";
-                submitAuthBtn.textContent = "Se connecter";
-                authSwitchText.textContent = "Pas encore de compte ?";
-                authSwitchBtn.textContent = "Créer un compte";
-            } else {
-                authTitle.textContent = "Inscription";
-                authSubtitle.textContent = "Rejoignez l'élite fiscale";
-                submitAuthBtn.textContent = "S'inscrire";
-                authSwitchText.textContent = "Déjà un compte ?";
-                authSwitchBtn.textContent = "Se connecter";
-            }
-        }
-
-        function resetForm() {
-            authForm.reset();
-            authError.classList.add('hidden');
-            isLoginMode = true;
-            // Set default view to login
-            authTitle.textContent = "Connexion";
-            authSubtitle.textContent = "Accédez à votre espace fiscal";
-            submitAuthBtn.textContent = "Se connecter";
-            authSwitchText.textContent = "Pas encore de compte ?";
-            authSwitchBtn.textContent = "Créer un compte";
-        }
-
-        function showError(message) {
-            authError.textContent = message;
-            authError.classList.remove('hidden');
-        }
-
-        // --- EVENT LISTENERS ---
-
-        navLoginBtn.addEventListener('click', openAuthModal);
-        mobileLoginBtn.addEventListener('click', openAuthModal);
-        authCloseBtn.addEventListener('click', closeAuthModal);
-        authBackdrop.addEventListener('click', closeAuthModal);
-        authSwitchBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleAuthMode();
-        });
-
-        // Logout
-        navLogoutBtn.addEventListener('click', () => {
-            signOut(auth).then(() => {
-                console.log("Signed out");
-            }).catch((error) => {
-                console.error("Sign out error", error);
-            });
-        });
-
-        // Google Auth
-        googleAuthBtn.addEventListener('click', () => {
-            // The user interface will be updated via onAuthStateChanged; we do
-            // not attempt to read a Google access token here because some
-            // environments (e.g. Safari ITP) do not provide it and accessing
-            // credential.accessToken would throw an error.  Errors from
-            // signInWithPopup are surfaced to the user via showError.
-            signInWithPopup(auth, provider)
-            .then(() => {
-                // No-op; onAuthStateChanged will handle UI updates and Firestore
-                // profile creation.
-            })
-            .catch((error) => {
-                const errorMessage = error.message;
-                showError("Erreur Google: " + errorMessage);
-            });
-        });
-
-        // Email/Pass Auth
-        authForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            submitAuthBtn.disabled = true;
-            submitAuthBtn.textContent = "Chargement...";
-            authError.classList.add('hidden');
-
-            if (isLoginMode) {
-                // Login
-                signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Signed in 
-                    const user = userCredential.user;
-                    submitAuthBtn.disabled = false;
-                    submitAuthBtn.textContent = "Se connecter";
-                })
-                .catch((error) => {
-                    submitAuthBtn.disabled = false;
-                    submitAuthBtn.textContent = "Se connecter";
-                    const errorCode = error.code;
-                    let msg = "Erreur de connexion.";
-                    if(errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
-                        msg = "Email ou mot de passe incorrect.";
-                    } else if (errorCode === 'auth/too-many-requests') {
-                        msg = "Trop de tentatives. Réessayez plus tard.";
-                    }
-                    showError(msg);
-                });
-            } else {
-                // Sign Up
-                createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Signed up 
-                    const user = userCredential.user;
-                    submitAuthBtn.disabled = false;
-                    submitAuthBtn.textContent = "S'inscrire";
-                })
-                .catch((error) => {
-                    submitAuthBtn.disabled = false;
-                    submitAuthBtn.textContent = "S'inscrire";
-                    const errorCode = error.code;
-                    let msg = "Erreur d'inscription.";
-                    if(errorCode === 'auth/email-already-in-use') {
-                        msg = "Cet email est déjà utilisé.";
-                    } else if (errorCode === 'auth/weak-password') {
-                        msg = "Le mot de passe doit faire au moins 6 caractères.";
-                    }
-                    showError(msg);
-                });
-            }
-        });
-    </script>
-    <script>
-        // Register GSAP ScrollTrigger
-        gsap.registerPlugin(ScrollTrigger);
-
-        // 1. Navbar Scroll Effect
-        const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-
-        // 2. Mobile Menu
-        const btn = document.getElementById('mobile-menu-btn');
-        const menu = document.getElementById('mobile-menu');
-
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('hidden');
-        });
-
-        // Close menu when clicking a link
-        menu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                menu.classList.add('hidden');
-            });
-        });
-
-        // 3. GSAP Animations
-        
-        // General Reveal Up
-        const revealUpElements = document.querySelectorAll('.reveal-up');
-        revealUpElements.forEach(element => {
-            gsap.fromTo(element, 
-                { 
-                    y: 40, 
-                    opacity: 0,
-                    filter: 'blur(5px)'
-                },
-                {
-                    y: 0,
-                    opacity: 1,
-                    filter: 'blur(0px)',
-                    duration: 0.8,
-                    ease: "power3.out",
-                    scrollTrigger: {
-                        trigger: element,
-                        start: "top 85%",
-                        toggleActions: "play none none reverse"
-                    }
-                }
-            );
-        });
-
-        // Reveal In (Fade/Blur only)
-        const revealInElements = document.querySelectorAll('.reveal-in');
-        revealInElements.forEach(element => {
-            gsap.fromTo(element, 
-                { 
-                    opacity: 0, 
-                    scale: 0.95,
-                    filter: 'blur(10px)'
-                },
-                {
-                    opacity: 1,
-                    scale: 1,
-                    filter: 'blur(0px)',
-                    duration: 1,
-                    ease: "power2.out",
-                    scrollTrigger: {
-                        trigger: element,
-                        start: "top 80%",
-                        toggleActions: "play none none reverse"
-                    }
-                }
-            );
-        });
-
-        // Stagger Features Cards
-        gsap.from(".feature-card", {
-            y: 50,
-            opacity: 0,
-            duration: 0.8,
-            stagger: 0.1,
-            ease: "power3.out",
-            scrollTrigger: {
-                trigger: "#features",
-                start: "top 70%"
-            }
-        });
-
-        // New Stagger for Timeline Steps (Fix for fluidity)
-        gsap.from(".timeline-step", {
-            y: 50,
-            opacity: 0,
-            duration: 1,
-            stagger: 0.25,
-            ease: "power3.out",
-            scrollTrigger: {
-                trigger: ".timeline-step", 
-                start: "top 80%",
-                toggleActions: "play none none reverse"
-            }
-        });
-
-        // 4. Accordion Logic
-        const accordions = document.querySelectorAll('.accordion-header');
-
-        accordions.forEach(acc => {
-            acc.addEventListener('click', () => {
-                const content = acc.nextElementSibling;
-                const icon = acc.querySelector('svg');
-
-                // Toggle Active Class
-                content.classList.toggle('active');
-                
-                // Animate Height
-                if (content.style.maxHeight) {
-                    content.style.maxHeight = null;
-                    icon.style.transform = 'rotate(0deg)';
                 } else {
-                    content.style.maxHeight = content.scrollHeight + "px";
-                    icon.style.transform = 'rotate(180deg)';
+                    // Not Logged in
+                    showGate(true);
                 }
-
-                // Optional: Close others
-                accordions.forEach(otherAcc => {
-                    if (otherAcc !== acc) {
-                        otherAcc.nextElementSibling.style.maxHeight = null;
-                        otherAcc.nextElementSibling.classList.remove('active');
-                        otherAcc.querySelector('svg').style.transform = 'rotate(0deg)';
-                    }
-                });
             });
+        }
+
+        function showGate(isLoginMode) {
+            // Hide Splash
+            splashScreen.style.opacity = '0';
+            setTimeout(() => { splashScreen.style.display = 'none'; }, 500);
+
+            // Show Gate Overlay
+            premiumGate.style.display = 'flex';
+            
+            if (isLoginMode) {
+                loginCard.style.display = 'block';
+                errorCard.style.display = 'none';
+            } else {
+                loginCard.style.display = 'none';
+                errorCard.style.display = 'block';
+            }
+        }
+
+        function fadeOutSplash() {
+            splashScreen.style.opacity = '0';
+            splashScreen.style.visibility = 'hidden'; // Ensure clicks go through
+            // App is visible by default underneath
+        }
+
+        // Login Handler (Google)
+        loginGoogleBtn.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    // Logic will be handled by onAuthStateChanged listener above
+                }).catch((error) => {
+                    console.error("Login failed", error);
+                    alert("Erreur de connexion Google. Veuillez réessayer.");
+                });
         });
 
-        // 5. Modal Logic
-        const freeModal = document.getElementById('free-modal');
+        // Login Handler (Email)
+        loginEmailBtn.addEventListener('click', () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
 
-        function openFreeModal() {
-            freeModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
-        }
+            if(!email || !password) {
+                alert("Veuillez remplir tous les champs");
+                return;
+            }
 
-        function closeFreeModal() {
-            freeModal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in
+                    // Logic handled by onAuthStateChanged
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.error("Email login failed", error);
+                    alert("Erreur de connexion : " + errorMessage);
+                });
+        });
+
+        // Start
+        checkAccess();
 
     </script>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
