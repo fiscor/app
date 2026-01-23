@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="icon" type="image/png" href="bouclier.png">
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Analyseur Stratégique</title>
+    
+    <!-- Fonts Premium -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            /* Palette Fiscor */
+            --primary: #7C3AED;
+            --primary-dark: #5B21B6;
+            --primary-soft: #F5F3FF;
+            --primary-glass: rgba(124, 58, 237, 0.08);
+            
+            --bg-body: #FFFFFF;
+            --bg-surface: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            
+            --text-main: #18181B;
+            --text-muted: #71717A;
+            --text-light: #A1A1AA;
+
+            --border: #E4E4E7;
+            
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --info: #3B82F6;
+            
+            --shadow-float: 0 25px 50px -12px rgba(124, 58, 237, 0.15);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+            --radius-m: 16px;
+            --radius-l: 24px;
+        }
+
+        /* RESET */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body {
+            margin: 0; font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body); color: var(--text-main);
+            line-height: 1.6; -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; color: var(--text-main); }
+        
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* LAYOUT */
+        .app-container {
+            max-width: 900px; margin: 0 auto; padding: 40px 24px;
+            min-height: 100vh; display: flex; flex-direction: column;
+        }
+
+        /* HEADER */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.25rem; }
+        .brand-icon {
+            width: 36px; height: 36px; background: var(--primary); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+        .icon-svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* INTRO VIEW */
+        .intro-hero {
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-l); padding: 40px; text-align: center;
+            box-shadow: var(--shadow-float);
+        }
+        .hero-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em; line-height: 1.2; }
+        .hero-sub { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 30px; max-width: 650px; margin-left: auto; margin-right: auto; }
+
+        .benefit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; text-align: left; margin-bottom: 40px; }
+        .benefit-item { padding: 24px; background: var(--bg-subtle); border-radius: 12px; border: 1px solid var(--border); }
+        .benefit-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-weight: 700; color: var(--primary-dark); }
+        .benefit-txt { font-size: 0.9rem; color: var(--text-muted); }
+
+        /* WIZARD FORMS */
+        .wizard-container { max-width: 700px; margin: 0 auto; width: 100%; }
+        .step-indicator { font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .form-card { margin-bottom: 30px; animation: fadeIn 0.4s ease; }
+        .q-label { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; display: block; color: var(--text-main); }
+        .q-sub { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; display: block; }
+
+        .grid-options { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media(min-width: 600px) { .grid-options { grid-template-columns: 1fr 1fr; } }
+
+        .option-card {
+            position: relative; border: 2px solid var(--border); border-radius: 12px;
+            padding: 20px; cursor: pointer; transition: all 0.2s; background: white;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .option-card:hover { border-color: var(--primary-dark); transform: translateY(-2px); }
+        .option-radio { position: absolute; opacity: 0; }
+        .option-radio:checked + .option-card { border-color: var(--primary); background: var(--primary-soft); }
+        .opt-title { font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .opt-desc { font-size: 0.85rem; color: var(--text-muted); }
+
+        .input-text { width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 1rem; font-family: inherit; transition: 0.2s; }
+        .input-text:focus { border-color: var(--primary); outline: none; }
+
+        /* ACTION BAR */
+        .actions { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .btn {
+            padding: 14px 28px; border-radius: 100px; font-weight: 600; cursor: pointer;
+            border: none; font-size: 1rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-ghost { background: transparent; color: var(--text-muted); }
+        .btn-ghost:hover { background: var(--bg-subtle); color: var(--text-main); }
+
+        /* LOADER */
+        .loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 50px; height: 50px; border: 4px solid var(--primary-soft); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 24px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* REPORT DASHBOARD */
+        .report-header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid var(--border); }
+        .strat-badge { 
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; 
+            border-radius: 100px; font-weight: 700; font-size: 0.9rem; margin-top: 16px;
+            background: var(--primary); color: white;
+        }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 40px; }
+        .kpi-card { background: var(--bg-subtle); padding: 16px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+        .kpi-val { font-size: 1.5rem; font-weight: 800; color: var(--text-main); display: block; margin-bottom: 4px; }
+        .kpi-label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+
+        .analysis-cols { display: grid; grid-template-columns: 1fr; gap: 30px; margin-bottom: 40px; }
+        @media(min-width:800px) { .analysis-cols { grid-template-columns: 1fr 1fr; } }
+        
+        .col-box { border: 1px solid var(--border); border-radius: 16px; padding: 24px; background: white; height: 100%; }
+        .col-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        .list-item { display: flex; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--bg-subtle); }
+        .list-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .li-icon { min-width: 20px; margin-top: 2px; }
+        .li-content strong { display: block; color: var(--text-main); font-size: 0.95rem; }
+        .li-content span { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* STRATEGY SECTION */
+        .strategy-box { background: var(--primary-soft); border: 1px solid var(--primary-glass); border-radius: 16px; padding: 30px; margin-bottom: 40px; }
+        .strat-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-top: 24px; }
+        .strat-col h4 { font-size: 0.9rem; text-transform: uppercase; color: var(--primary); margin-bottom: 12px; border-bottom: 2px solid var(--primary-glass); padding-bottom: 8px; }
+
+        /* TIMELINE */
+        .timeline { position: relative; padding-left: 20px; margin-top: 20px; border-left: 2px solid var(--border); }
+        .tl-item { margin-bottom: 24px; position: relative; }
+        .tl-dot { position: absolute; left: -27px; top: 0; width: 12px; height: 12px; background: var(--primary); border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px var(--border); }
+        .tl-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+        .tl-desc { font-size: 0.9rem; color: var(--text-muted); }
+        .tl-tag { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: var(--bg-subtle); margin-bottom: 6px; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .app-container { padding: 0; max-width: 100%; }
+            .analysis-cols, .strat-cols { display: block; }
+            .col-box, .strategy-box { margin-bottom: 20px; break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. INTRO -->
+    <div id="view-intro" class="app-container fade-in">
+        <header>
+            <div class="brand"><div class="brand-icon"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>Fiscor</div>
+        </header>
+
+        <div class="intro-hero">
+            <h1 class="hero-title">Analyseur Stratégique</h1>
+            <p class="hero-sub">Ne naviguez plus à vue. Je croise vos données fiscales, financières et commerciales pour générer votre stratégie de croissance et de conformité.</p>
+            
+            <div class="benefit-grid">
+                <div class="benefit-item">
+                    <div class="benefit-head">
+                        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        Diagnostic Business
+                    </div>
+                    <div class="benefit-txt">Analyse de la cohérence CA / Charges / Statut.</div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-head">
+                        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        Carte des Risques
+                    </div>
+                    <div class="benefit-txt">Détection des seuils critiques (TVA, Micro).</div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-head">
+                        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                        Stratégie & Plan
+                    </div>
+                    <div class="benefit-txt">Plan d'action priorisé à 90 jours.</div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="startWizard()">
+                Lancer l'Analyse
+                <svg class="icon-svg" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. WIZARD -->
+    <div id="view-wizard" class="app-container hidden">
+        <header>
+            <div class="brand"><div class="brand-icon">A</div> Analyseur</div>
+            <div style="font-size:0.9rem; font-weight:600; color:var(--text-muted);">
+                Étape <span id="step-num">1</span> / 4
+            </div>
+        </header>
+
+        <div class="wizard-container">
+            <form id="wizard-form" onsubmit="return false;">
+                
+                <!-- STEP 1: STRUCTURE -->
+                <div id="step-1" class="form-card fade-in">
+                    <div class="step-indicator">Bloc A : Structure</div>
+                    
+                    <div class="q-group" style="margin-bottom:30px;">
+                        <span class="q-label">Votre Statut Actuel</span>
+                        <div class="grid-options">
+                            <label class="option-card">
+                                <input type="radio" name="status" value="micro" class="option-radio" checked>
+                                <div class="opt-title"><svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> Micro-Entreprise</div>
+                                <div class="opt-desc">Simplicité, charges forfaitaires.</div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="status" value="societe" class="option-radio">
+                                <div class="opt-title"><svg class="icon-svg" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg> Société / Réel</div>
+                                <div class="opt-desc">SASU, EURL, EI au Réel.</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="q-group">
+                        <span class="q-label">Type d'Activité</span>
+                        <div class="grid-options">
+                            <label class="option-card">
+                                <input type="radio" name="activity" value="service" class="option-radio" checked>
+                                <div class="opt-title"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Services (BNC/BIC)</div>
+                                <div class="opt-desc">Freelance, Consultant, Artisan.</div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="activity" value="vente" class="option-radio">
+                                <div class="opt-title"><svg class="icon-svg" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Achat-Vente</div>
+                                <div class="opt-desc">E-commerce, Négoce.</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: CHIFFRES -->
+                <div id="step-2" class="form-card hidden">
+                    <div class="step-indicator">Bloc B : Performance</div>
+                    
+                    <div class="q-group" style="margin-bottom:24px;">
+                        <label class="q-label">CA Annuel Estimé (HT)</label>
+                        <span class="q-sub">Projection sur l'année en cours (N).</span>
+                        <input type="number" id="ca_n" class="input-text" placeholder="Ex: 50000">
+                    </div>
+
+                    <div class="q-group" style="margin-bottom:24px;">
+                        <label class="q-label">CA Année Précédente (HT)</label>
+                        <span class="q-sub">Pour calculer la croissance (mettre 0 si création).</span>
+                        <input type="number" id="ca_n_1" class="input-text" placeholder="Ex: 30000">
+                    </div>
+
+                    <div class="q-group">
+                        <label class="q-label">Charges de fonctionnement</label>
+                        <span class="q-sub">Total annuel des frais (logiciels, pub, sous-traitance, achats...).</span>
+                        <input type="number" id="charges" class="input-text" placeholder="Ex: 5000">
+                    </div>
+                </div>
+
+                <!-- STEP 3: MARCHÉ -->
+                <div id="step-3" class="form-card hidden">
+                    <div class="step-indicator">Bloc C : Marché & TVA</div>
+                    
+                    <div class="q-group" style="margin-bottom:30px;">
+                        <span class="q-label">Typologie Clients</span>
+                        <div class="grid-options">
+                            <label class="option-card">
+                                <input type="radio" name="clients" value="b2b" class="option-radio" checked>
+                                <div class="opt-title">B2B (Entreprises)</div>
+                                <div class="opt-desc">Facturation Pro à Pro.</div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="clients" value="b2c" class="option-radio">
+                                <div class="opt-title">B2C (Particuliers)</div>
+                                <div class="opt-desc">Facturation au consommateur final.</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="q-group">
+                        <span class="q-label">Rayonnement Géographique</span>
+                        <div class="grid-options">
+                            <label class="option-card">
+                                <input type="radio" name="geo" value="fr" class="option-radio" checked>
+                                <div class="opt-title">France Uniquement</div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="geo" value="ue" class="option-radio">
+                                <div class="opt-title">Union Européenne</div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="geo" value="world" class="option-radio">
+                                <div class="opt-title">International (Hors UE)</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: OBJECTIFS -->
+                <div id="step-4" class="form-card hidden">
+                    <div class="step-indicator">Bloc D : Cap Stratégique</div>
+                    
+                    <div class="q-group">
+                        <span class="q-label">Votre Priorité Absolue</span>
+                        <div class="grid-options">
+                            <label class="option-card">
+                                <input type="radio" name="goal" value="cash" class="option-radio" checked>
+                                <div class="opt-title"><svg class="icon-svg" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Maximiser le Net</div>
+                                <div class="opt-desc">Je veux le plus d'argent disponible maintenant.</div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="goal" value="growth" class="option-radio">
+                                <div class="opt-title"><svg class="icon-svg" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> Investir & Croître</div>
+                                <div class="opt-desc">Je veux développer la structure.</div>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="goal" value="safe" class="option-radio">
+                                <div class="opt-title"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Sécurité Totale</div>
+                                <div class="opt-desc">Zéro risque, protection sociale max.</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+            <div class="actions">
+                <button class="btn btn-ghost" id="btn-prev" onclick="prevStep()">Retour</button>
+                <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Suivant</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. REPORT -->
+    <div id="view-report" class="app-container hidden">
+        <header class="no-print">
+            <div class="brand"><div class="brand-icon">R</div> Rapport Stratégique</div>
+            <button class="btn btn-ghost" onclick="location.reload()">Nouvelle Analyse</button>
+        </header>
+
+        <div id="export-area">
+            <!-- SUMMARY -->
+            <div class="report-header">
+                <h2 id="r-title" style="font-size:2rem; font-weight:800; margin-bottom:12px;">Profil : Micro-Entrepreneur en Croissance</h2>
+                <p id="r-subtitle" style="max-width:600px; margin:0 auto; color:var(--text-muted);">
+                    Votre situation est saine mais nécessite des ajustements structurels pour absorber votre croissance sans risque fiscal.
+                </p>
+                <div id="r-badge" class="strat-badge">
+                    <svg class="icon-svg" style="width:16px; height:16px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8" fill="white" stroke="none"></polygon></svg>
+                    Stratégie : Structuration & Mise en Conformité
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <span class="kpi-val" id="kpi-ca">0 €</span>
+                    <span class="kpi-label">CA Projeté</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-val" id="kpi-marge">0 %</span>
+                    <span class="kpi-label">Marge Opérationnelle</span>
+                </div>
+                <div class="kpi-card">
+                    <span class="kpi-val" id="kpi-statut">Micro</span>
+                    <span class="kpi-label">Régime Fiscal</span>
+                </div>
+            </div>
+
+            <!-- RISKS & OPPS -->
+            <div class="analysis-cols">
+                <div class="col-box">
+                    <div class="col-title" style="color:var(--danger);">
+                        <svg class="icon-svg" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        Risques Identifiés (Top 3)
+                    </div>
+                    <div id="risk-list">
+                        <!-- Injected -->
+                    </div>
+                </div>
+
+                <div class="col-box">
+                    <div class="col-title" style="color:var(--success);">
+                        <svg class="icon-svg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        Opportunités
+                    </div>
+                    <div id="opp-list">
+                        <!-- Injected -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- STRATEGY 3 AXES -->
+            <div class="strategy-box">
+                <h3 style="font-weight:800; font-size:1.5rem;">Votre Feuille de Route Stratégique</h3>
+                <div class="strat-cols">
+                    <div class="strat-col">
+                        <h4>🛡️ Axe 1 : Conformité</h4>
+                        <div id="strat-1" style="font-size:0.9rem; color:var(--text-main);">Surveiller seuil TVA et obtenir numéro intracommunautaire.</div>
+                    </div>
+                    <div class="strat-col">
+                        <h4>📊 Axe 2 : Pilotage</h4>
+                        <div id="strat-2" style="font-size:0.9rem; color:var(--text-main);">Mettre en place un suivi mensuel des encaissements vs seuils.</div>
+                    </div>
+                    <div class="strat-col">
+                        <h4>🚀 Axe 3 : Optimisation</h4>
+                        <div id="strat-3" style="font-size:0.9rem; color:var(--text-main);">Basculer les petites charges sur le compte perso pour simplifier.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTION PLAN -->
+            <div class="col-box" style="border:none; padding:0;">
+                <h3 style="font-weight:800; margin-bottom:20px;">Plan d'Action Immédiat (90 Jours)</h3>
+                <div class="timeline" id="action-timeline">
+                    <!-- Injected -->
+                </div>
+            </div>
+        </div>
+
+        <div class="actions no-print" style="justify-content: center;">
+            <button class="btn btn-primary" onclick="downloadPDF()">Télécharger l'Analyse (PDF)</button>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+        <h3 id="loader-msg" style="margin-bottom:8px;">Initialisation Fiscor AI...</h3>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+        let answers = {};
+
+        // --- NAVIGATION ---
+        function startWizard() {
+            document.getElementById('view-intro').classList.add('hidden');
+            document.getElementById('view-wizard').classList.remove('hidden');
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('step-num').innerText = currentStep;
+            
+            for(let i=1; i<=totalSteps; i++) {
+                const el = document.getElementById(`step-${i}`);
+                if(i === currentStep) {
+                    el.classList.remove('hidden');
+                    el.classList.add('fade-in');
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('fade-in');
+                }
+            }
+
+            document.getElementById('btn-prev').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+            document.getElementById('btn-next').innerText = currentStep === totalSteps ? 'Générer la Stratégie' : 'Suivant';
+        }
+
+        function nextStep() {
+            // Save data
+            saveCurrentStepData();
+
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateUI();
+            } else {
+                runAnalysis();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        function saveCurrentStepData() {
+            if(currentStep === 1) {
+                answers.status = document.querySelector('input[name="status"]:checked').value;
+                answers.activity = document.querySelector('input[name="activity"]:checked').value;
+            } else if(currentStep === 2) {
+                answers.ca_n = parseFloat(document.getElementById('ca_n').value) || 0;
+                answers.ca_n_1 = parseFloat(document.getElementById('ca_n_1').value) || 0;
+                answers.charges = parseFloat(document.getElementById('charges').value) || 0;
+            } else if(currentStep === 3) {
+                answers.clients = document.querySelector('input[name="clients"]:checked').value;
+                answers.geo = document.querySelector('input[name="geo"]:checked').value;
+            } else if(currentStep === 4) {
+                answers.goal = document.querySelector('input[name="goal"]:checked').value;
+            }
+        }
+
+        // --- ENGINE ---
+        function runAnalysis() {
+            document.getElementById('view-wizard').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+
+            const steps = [
+                "Analyse de la structure fiscale...",
+                "Calcul des seuils critiques...",
+                "Comparaison avec les standards du marché...",
+                "Génération du plan stratégique..."
+            ];
+            let i = 0;
+            const interval = setInterval(() => {
+                if(steps[i]) document.getElementById('loader-msg').innerText = steps[i];
+                i++;
+            }, 800);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                generateReport();
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('view-report').classList.remove('hidden');
+            }, 3500);
+        }
+
+        function generateReport() {
+            // LOGIC ENGINE
+            const risks = [];
+            const opps = [];
+            const plan = [];
+            
+            // Calc KPI
+            const margin = answers.ca_n > 0 ? Math.round(((answers.ca_n - answers.charges) / answers.ca_n) * 100) : 0;
+            const growth = answers.ca_n_1 > 0 ? Math.round(((answers.ca_n - answers.ca_n_1) / answers.ca_n_1) * 100) : 0;
+            
+            // Thresholds 2024
+            const limitTVA = answers.activity === 'vente' ? 91900 : 36800;
+            const limitMicro = answers.activity === 'vente' ? 188700 : 77700;
+
+            // 1. RISK ANALYSIS
+            if(answers.status === 'micro') {
+                if(answers.ca_n > limitTVA) {
+                    risks.push({
+                        title: "Dépassement Seuil TVA",
+                        desc: `CA estimé (${answers.ca_n}€) > Seuil Franchise (${limitTVA}€). Vous devrez facturer la TVA.`
+                    });
+                }
+                if(answers.ca_n > limitMicro) {
+                    risks.push({
+                        title: "Sortie Régime Micro",
+                        desc: "Vous dépassez les plafonds de la micro-entreprise. Bascule forcée au réel en N+1 ou N+2."
+                    });
+                }
+                if(margin < 50 && answers.activity === 'service') {
+                    risks.push({
+                        title: "Rentabilité Faible (Micro)",
+                        desc: "Vos charges sont trop élevées pour le régime micro (abattement forfaitaire 34%). Vous payez des cotisations sur du CA qui sert à payer des charges."
+                    });
+                }
+            }
+
+            if(answers.geo !== 'fr' && answers.status === 'micro') {
+                risks.push({
+                    title: "Risque Intracommunautaire",
+                    desc: "Vente hors France : Nécessite Numéro TVA Intracom et déclaration DES (services) ou DEB (biens)."
+                });
+            }
+
+            if(risks.length === 0) {
+                risks.push({title: "Aucun risque majeur", desc: "Votre structure semble saine et adaptée."});
+            }
+
+            // 2. OPPORTUNITIES
+            if(answers.status === 'micro' && answers.charges > (answers.ca_n * 0.4)) {
+                opps.push({
+                    title: "Passage au Réel",
+                    desc: "Passer en EI Réel ou SASU permettrait de déduire vos charges réelles et réduire votre base imposable."
+                });
+            }
+            if(answers.geo === 'ue' || answers.geo === 'world') {
+                opps.push({
+                    title: "Expansion Internationale",
+                    desc: "Le marché export est porteur. Sécurisez la TVA (Souvent 0%) pour augmenter votre marge nette."
+                });
+            }
+            if(answers.goal === 'cash' && answers.status === 'societe') {
+                opps.push({
+                    title: "Arbitrage Dividendes",
+                    desc: "En SASU, privilégiez les dividendes (Flat Tax 30%) plutôt que le salaire (charges ~80%) pour maximiser le cash."
+                });
+            }
+            
+            if(opps.length === 0) opps.push({title: "Optimisation continue", desc: "Maintenez vos efforts de gestion."});
+
+            // 3. ACTION PLAN
+            plan.push({ time: "Aujourd'hui", act: "Vérifier le montant exact du CA encaissé depuis le 1er janvier.", tag: "Finance" });
+            
+            if(risks.some(r => r.title.includes("TVA"))) {
+                plan.push({ time: "7 Jours", act: "Demander numéro de TVA Intracom au SIE (messagerie impots.gouv).", tag: "Urgent" });
+                plan.push({ time: "30 Jours", act: "Mettre à jour modèles de factures (Taux TVA).", tag: "Admin" });
+            } else {
+                 plan.push({ time: "7 Jours", act: "Classer et archiver les justificatifs du mois dernier.", tag: "Admin" });
+            }
+
+            if(answers.goal === 'growth') {
+                plan.push({ time: "30 Jours", act: "Établir un prévisionnel de trésorerie sur 6 mois.", tag: "Stratégie" });
+                plan.push({ time: "90 Jours", act: "Analyser l'opportunité de passer en Société pour déduire investissements.", tag: "Structure" });
+            } else {
+                 plan.push({ time: "90 Jours", act: "Faire un point trimestriel sur le taux de marge.", tag: "Pilotage" });
+            }
+
+            // RENDER
+            document.getElementById('r-title').innerText = `Profil : ${answers.status === 'micro' ? 'Micro-Entrepreneur' : 'Dirigeant'} ${answers.goal === 'growth' ? 'Ambitieux' : 'Prudent'}`;
+            document.getElementById('kpi-ca').innerText = answers.ca_n + " €";
+            document.getElementById('kpi-marge').innerText = margin + " %";
+            document.getElementById('kpi-statut').innerText = answers.status.toUpperCase();
+
+            // Render Lists
+            const riskList = document.getElementById('risk-list');
+            riskList.innerHTML = risks.slice(0,3).map(r => `
+                <div class="list-item">
+                    <div class="li-icon"><svg class="icon-svg" style="color:var(--danger);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>
+                    <div class="li-content"><strong>${r.title}</strong><span>${r.desc}</span></div>
+                </div>
+            `).join('');
+
+            const oppList = document.getElementById('opp-list');
+            oppList.innerHTML = opps.slice(0,3).map(o => `
+                <div class="list-item">
+                    <div class="li-icon"><svg class="icon-svg" style="color:var(--success);" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>
+                    <div class="li-content"><strong>${o.title}</strong><span>${o.desc}</span></div>
+                </div>
+            `).join('');
+
+            // Render Strategy
+            document.getElementById('strat-1').innerText = risks.length > 0 ? "Résoudre les points de non-conformité (TVA/Seuils) en priorité." : "Maintenir le niveau de conformité actuel.";
+            document.getElementById('strat-2').innerText = `Suivre le taux de marge (${margin}%) mensuellement pour éviter la dérive des coûts.`;
+            document.getElementById('strat-3').innerText = answers.goal === 'cash' ? "Optimiser la fiscalité personnelle (Dividendes/Libératoire)." : "Réinvestir les bénéfices pour créer de la charge déductible.";
+
+            // Render Timeline
+            const tl = document.getElementById('action-timeline');
+            tl.innerHTML = plan.map(p => `
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <span class="tl-tag">${p.time}</span>
+                    <div class="tl-title">${p.act}</div>
+                    <div class="tl-desc">Domaine : ${p.tag}</div>
+                </div>
+            `).join('');
+        }
+
+        function downloadPDF() {
+            const el = document.getElementById('export-area');
+            const opt = {
+                margin: 10,
+                filename: 'Fiscor_Strategie.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(el).save();
+        }
+    </script>
+</body>
+</html>
