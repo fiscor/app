@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Simulateur Net & Charges</title>
+    
+    <!-- Fonts Premium -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js & HTML2PDF -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --primary: #7C3AED;
+            --primary-dark: #5B21B6;
+            --primary-soft: #F5F3FF;
+            --bg-body: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #18181B;
+            --text-muted: #71717A;
+            --border: #E4E4E7;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --radius-m: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-float: 0 20px 40px -10px rgba(124, 58, 237, 0.15);
+        }
+
+        /* BASE */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); line-height: 1.6; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* LAYOUT */
+        .app-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; min-height: 100vh; display: flex; flex-direction: column; }
+        
+        /* HEADER */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.25rem; }
+        .brand-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
+
+        /* HERO / INTRO */
+        .intro-box { background: var(--bg-subtle); border-radius: var(--radius-m); padding: 40px; text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow-float); }
+        .intro-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em; }
+        .intro-desc { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 30px; }
+        
+        .scenarios-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 30px; }
+        .scenario-pill { background: white; border: 1px solid var(--border); padding: 8px 16px; border-radius: 100px; font-size: 0.9rem; cursor: pointer; transition: 0.2s; font-weight: 500; }
+        .scenario-pill:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+
+        /* FORM */
+        .sim-form { background: white; border: 1px solid var(--border); border-radius: var(--radius-m); padding: 30px; margin-bottom: 30px; box-shadow: var(--shadow-card); }
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+        @media(min-width: 768px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+        
+        .inp-group { display: flex; flex-direction: column; gap: 8px; }
+        .inp-label { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+        .inp-field { padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit; transition: 0.2s; width: 100%; }
+        .inp-field:focus { border-color: var(--primary); }
+        
+        /* RESULTS DASHBOARD */
+        .results-dash { display: grid; grid-template-columns: 1fr; gap: 30px; }
+        @media(min-width: 800px) { .results-dash { grid-template-columns: 1.2fr 0.8fr; } }
+
+        .result-card { background: var(--primary-soft); border: 1px solid rgba(124, 58, 237, 0.1); border-radius: var(--radius-m); padding: 30px; text-align: center; position: relative; overflow: hidden; }
+        .net-value { font-size: 3.5rem; font-weight: 800; color: var(--primary); line-height: 1.1; margin: 10px 0; }
+        .net-label { text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; font-weight: 700; color: var(--text-muted); }
+        .reserve-badge { background: #fff; padding: 10px 20px; border-radius: 100px; display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        .chart-box { background: white; border: 1px solid var(--border); border-radius: var(--radius-m); padding: 20px; display: flex; align-items: center; justify-content: center; height: 320px; }
+        
+        .breakdown-list { margin-top: 30px; display: flex; flex-direction: column; gap: 12px; }
+        .breakdown-item { display: flex; justify-content: space-between; padding: 16px; background: var(--bg-subtle); border-radius: 8px; font-size: 0.95rem; }
+        .bd-val { font-weight: 700; }
+        .bd-minus { color: var(--danger); }
+
+        /* ACTION PLAN */
+        .plan-section { margin-top: 40px; border-top: 2px solid var(--border); padding-top: 40px; }
+        .action-item { display: flex; gap: 16px; margin-bottom: 16px; background: white; border: 1px solid var(--border); padding: 20px; border-radius: 12px; }
+        .prio-tag { background: var(--text-main); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; height: fit-content; }
+        .prio-tag.p0 { background: var(--danger); }
+
+        /* BUTTONS */
+        .btn { padding: 14px 28px; border-radius: 100px; font-weight: 600; border: none; cursor: pointer; transition: 0.2s; font-size: 1rem; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; justify-content: center; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); background: var(--primary-dark); }
+        .btn-ghost { background: transparent; color: var(--text-muted); }
+        .btn-ghost:hover { background: var(--bg-subtle); color: var(--text-main); }
+
+        /* LOADER */
+        .loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 48px; height: 48px; border: 4px solid var(--primary-soft); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media print {
+            .no-print { display: none; }
+            .app-container { max-width: 100%; padding: 0; }
+            .chart-box { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- INTRO VIEW -->
+    <div id="view-intro" class="app-container fade-in">
+        <header>
+            <div class="brand"><div class="brand-icon">S</div> Fiscor</div>
+        </header>
+
+        <div class="intro-box">
+            <h1 class="intro-title">Simulateur de Revenus</h1>
+            <p class="intro-desc">Estimez vos charges, vos impôts et votre net réel dans la poche. Arrêtez de piloter votre trésorerie à l'aveugle.</p>
+            
+            <div class="scenarios-row">
+                <div class="scenario-pill" onclick="loadScenario('A')">💡 Micro Vise 3k€ Net</div>
+                <div class="scenario-pill" onclick="loadScenario('B')">🚀 Freelance en croissance</div>
+                <div class="scenario-pill" onclick="loadScenario('C')">📦 E-commerce (Marge & TVA)</div>
+            </div>
+
+            <div class="sim-form" style="text-align: left;">
+                <h3 style="margin-bottom:20px;">Paramètres de simulation</h3>
+                <div class="form-grid">
+                    <div class="inp-group">
+                        <label class="inp-label">Statut Juridique</label>
+                        <select id="status" class="inp-field" onchange="toggleFields()">
+                            <option value="micro">Micro-Entreprise (Auto)</option>
+                            <option value="sasu">Société (SASU/EURL à l'IS)</option>
+                        </select>
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Activité</label>
+                        <select id="activity" class="inp-field">
+                            <option value="bnc">Prestation de Service (BNC)</option>
+                            <option value="bic">Commerce / Achat-Vente (BIC)</option>
+                        </select>
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Chiffre d'Affaires Annuel (HT)</label>
+                        <input type="number" id="ca" class="inp-field" placeholder="Ex: 45000">
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Charges Annuelles (Frais pro)</label>
+                        <input type="number" id="charges" class="inp-field" placeholder="Ex: 2000" value="0">
+                    </div>
+                </div>
+
+                <div class="form-grid" style="margin-top:24px;">
+                    <div class="inp-group">
+                        <label class="inp-label">Situation Personnelle</label>
+                        <select id="situation" class="inp-field">
+                            <option value="single">Célibataire (1 part)</option>
+                            <option value="couple">Couple (2 parts)</option>
+                            <option value="family">Couple + 2 enfants (3 parts)</option>
+                        </select>
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Options Fiscales</label>
+                        <div style="display:flex; gap:16px; margin-top:8px;">
+                            <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem;">
+                                <input type="checkbox" id="acre"> ACRE (1ère année)
+                            </label>
+                            <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem;">
+                                <input type="checkbox" id="liberatoire"> Versement Libératoire
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="runSimulation()">
+                Lancer la Simulation
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- RESULTS VIEW -->
+    <div id="view-results" class="app-container hidden">
+        <header class="no-print">
+            <div class="brand"><div class="brand-icon">R</div> Résultats</div>
+            <button class="btn btn-ghost" onclick="location.reload()">Nouvelle Simulation</button>
+        </header>
+
+        <div id="export-target">
+            <!-- DASHBOARD -->
+            <div class="results-dash">
+                <!-- LEFT: BIG NUMBERS -->
+                <div>
+                    <div class="result-card">
+                        <div class="net-label">Net Annuel Estimé (Après Impôts)</div>
+                        <div class="net-value" id="res-net-annual">0 €</div>
+                        <div class="net-label" style="margin-top:0;">Soit <span id="res-net-monthly" style="color:var(--text-main);">0 €</span> / mois</div>
+                        
+                        <div class="reserve-badge">
+                            <svg width="20" height="20" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            À provisionner : <span id="res-provision">0 €</span> / mois
+                        </div>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:12px;">
+                            Montant à laisser sur le compte pro pour payer URSSAF & Impôts.
+                        </p>
+                    </div>
+
+                    <div class="breakdown-list">
+                        <div class="breakdown-item">
+                            <span>Chiffre d'Affaires</span>
+                            <span class="bd-val" id="bd-ca">0 €</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Charges & Frais Pro</span>
+                            <span class="bd-val bd-minus" id="bd-charges">- 0 €</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Cotisations Sociales (Urssaf)</span>
+                            <span class="bd-val bd-minus" id="bd-social">- 0 €</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span>Impôt sur le Revenu (Est.)</span>
+                            <span class="bd-val bd-minus" id="bd-tax">- 0 €</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: CHART -->
+                <div class="chart-box">
+                    <canvas id="simChart"></canvas>
+                </div>
+            </div>
+
+            <!-- ACTION PLAN -->
+            <div class="plan-section">
+                <h2 style="font-size:1.5rem; margin-bottom:24px;">Plan d'Action & Conseils</h2>
+                <div id="action-list">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+            
+            <div style="background:#FEF3C7; color:#92400E; padding:16px; border-radius:12px; font-size:0.9rem; margin-top:30px;">
+                <strong>Note :</strong> Cette simulation est une estimation. La TVA n'est pas incluse dans le calcul du Net (car neutre pour le pro), mais attention aux seuils de franchise !
+            </div>
+        </div>
+
+        <div class="no-print" style="margin-top:40px; text-align:center;">
+            <button class="btn btn-primary" onclick="downloadPDF()" style="width:auto;">Télécharger le Rapport PDF</button>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+        <h3>Calcul en cours...</h3>
+        <p style="color:var(--text-muted);" id="loader-msg">Estimation des charges sociales</p>
+    </div>
+
+    <script>
+        // --- LOGIC ---
+        
+        let myChart = null;
+
+        function toggleFields() {
+            // Placeholder logic if fields need to change based on status
+        }
+
+        function loadScenario(type) {
+            if(type === 'A') {
+                // Micro vise 3k net
+                document.getElementById('status').value = 'micro';
+                document.getElementById('activity').value = 'bnc';
+                document.getElementById('ca').value = 52000;
+                document.getElementById('charges').value = 1000;
+                document.getElementById('situation').value = 'single';
+            } else if(type === 'B') {
+                // Freelance growth
+                document.getElementById('status').value = 'micro';
+                document.getElementById('activity').value = 'bnc';
+                document.getElementById('ca').value = 90000;
+                document.getElementById('charges').value = 5000;
+                document.getElementById('situation').value = 'couple';
+            } else if(type === 'C') {
+                // E-com
+                document.getElementById('status').value = 'micro';
+                document.getElementById('activity').value = 'bic';
+                document.getElementById('ca').value = 120000;
+                document.getElementById('charges').value = 60000; // Marge 50%
+                document.getElementById('situation').value = 'single';
+            }
+            // Highlight effect
+            alert("Scénario " + type + " chargé ! Cliquez sur 'Lancer'.");
+        }
+
+        function runSimulation() {
+            const ca = parseFloat(document.getElementById('ca').value);
+            if(!ca) return alert("Veuillez entrer un Chiffre d'Affaires.");
+
+            document.getElementById('view-intro').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+
+            // Fake loading sequence
+            const msgs = ["Calcul des cotisations URSSAF...", "Estimation de l'Impôt sur le Revenu...", "Optimisation des réserves...", "Génération du plan d'action..."];
+            let i = 0;
+            const interval = setInterval(() => {
+                if(msgs[i]) document.getElementById('loader-msg').innerText = msgs[i];
+                i++;
+            }, 800);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                calculateResults();
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('view-results').classList.remove('hidden');
+            }, 3200);
+        }
+
+        function calculateResults() {
+            const inputs = {
+                status: document.getElementById('status').value,
+                activity: document.getElementById('activity').value,
+                ca: parseFloat(document.getElementById('ca').value) || 0,
+                charges: parseFloat(document.getElementById('charges').value) || 0,
+                acre: document.getElementById('acre').checked,
+                liberatoire: document.getElementById('liberatoire').checked,
+                situation: document.getElementById('situation').value
+            };
+
+            let social = 0;
+            let tax = 0;
+            let net = 0;
+            let actions = [];
+
+            // --- ENGINE ---
+
+            if (inputs.status === 'micro') {
+                // MICRO CALCUL
+                let rateSocial = (inputs.activity === 'bnc') ? 0.211 : 0.123;
+                if (inputs.acre) rateSocial *= 0.5; // Approx ACRE
+
+                social = inputs.ca * rateSocial;
+                
+                // Impot
+                if (inputs.liberatoire) {
+                    let rateLib = (inputs.activity === 'bnc') ? 0.022 : (inputs.activity === 'bic' ? 0.01 : 0.017); // Simplified bic rates
+                    tax = inputs.ca * rateLib;
+                } else {
+                    // Impot Classique (Estimation TMI)
+                    let abattement = (inputs.activity === 'bnc') ? 0.34 : (inputs.activity === 'bic' ? 0.71 : 0.50);
+                    let taxable = inputs.ca * (1 - abattement);
+                    
+                    // Simple TMI simulator based on parts
+                    let parts = inputs.situation === 'single' ? 1 : (inputs.situation === 'couple' ? 2 : 3);
+                    let qf = taxable / parts;
+                    let tmi = 0;
+                    if(qf > 27479) tmi = 0.30;
+                    else if(qf > 10777) tmi = 0.11;
+                    
+                    tax = taxable * tmi; 
+                }
+
+                net = inputs.ca - social - tax - inputs.charges;
+
+                // Micro Specific Checks
+                const limitTVA = inputs.activity === 'bnc' ? 36800 : 91900;
+                const limitMicro = inputs.activity === 'bnc' ? 77700 : 188700;
+
+                if(inputs.ca > limitTVA) {
+                    actions.push({p:'P0', t:'Seuil de Franchise TVA dépassé', d:`Vous dépassez ${limitTVA}€. Vous devez facturer la TVA. Vos prix TTC vont augmenter pour vos clients particuliers.`});
+                }
+                if(inputs.ca > limitMicro) {
+                    actions.push({p:'P0', t:'Sortie du régime Micro', d:`Attention, vous dépassez le plafond (${limitMicro}€). Préparez le passage en société ou EI réel.`});
+                }
+            } else {
+                // SASU ESTIMATION (Simplifiée pour UX)
+                // Profit = CA - Charges
+                let profit = inputs.ca - inputs.charges;
+                if(profit < 0) profit = 0;
+
+                // IS
+                let is = (profit < 42500) ? profit * 0.15 : (42500*0.15 + (profit-42500)*0.25);
+                let netCompany = profit - is;
+                
+                // Dividendes (Flat Tax 30%)
+                let flatTax = netCompany * 0.30;
+                
+                social = 0; // In SASU dividend model, social is minimal/none but included in FlatTax concept broadly or paid by company. 
+                // For simplified display: Tax = IS + FlatTax. Social = 0 (or included in charges if salary).
+                // Let's assume Dividend Strategy.
+                tax = is + flatTax;
+                net = netCompany - flatTax;
+                
+                actions.push({p:'P2', t:'Optimisation Rémunération', d:'Cette simulation suppose une sortie en dividendes (Flat Tax 30%). Un mix Salaire/Dividende est souvent plus protecteur.'});
+            }
+
+            // Common Actions
+            const reserveRate = Math.round(((social + tax) / inputs.ca) * 100);
+            if(reserveRate > 30) {
+                actions.push({p:'P1', t:'Provisionner agressivement', d:`Vous devez mettre de côté ${reserveRate}% de chaque encaissement.`});
+            }
+            if(inputs.charges > (inputs.ca * 0.5) && inputs.status === 'micro') {
+                actions.push({p:'P1', t:'Rentabilité Micro Critique', d:'Vos charges sont trop élevées pour le régime Micro (pas de déduction). Passez au réel.'});
+            }
+
+            // Fallback action
+            if(actions.length === 0) actions.push({p:'P2', t:'Situation Saine', d:'Vos indicateurs sont au vert. Continuez de suivre vos encaissements.'});
+
+
+            // --- UI UPDATE ---
+            document.getElementById('res-net-annual').innerText = Math.round(net).toLocaleString() + ' €';
+            document.getElementById('res-net-monthly').innerText = Math.round(net/12).toLocaleString() + ' €';
+            
+            // Provision : (Social + Tax) / 12
+            document.getElementById('res-provision').innerText = Math.round((social+tax)/12).toLocaleString() + ' €';
+
+            document.getElementById('bd-ca').innerText = Math.round(inputs.ca).toLocaleString() + ' €';
+            document.getElementById('bd-charges').innerText = '- ' + Math.round(inputs.charges).toLocaleString() + ' €';
+            document.getElementById('bd-social').innerText = '- ' + Math.round(social).toLocaleString() + ' €';
+            document.getElementById('bd-tax').innerText = '- ' + Math.round(tax).toLocaleString() + ' €';
+
+            // Chart
+            const ctx = document.getElementById('simChart').getContext('2d');
+            if(myChart) myChart.destroy();
+            
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Net Poche', 'Charges', 'Social', 'Impôts'],
+                    datasets: [{
+                        data: [net, inputs.charges, social, tax],
+                        backgroundColor: ['#7C3AED', '#E4E4E7', '#F59E0B', '#EF4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, font: { family: "'Inter', sans-serif" } } }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // Action List
+            const list = document.getElementById('action-list');
+            list.innerHTML = actions.map(a => `
+                <div class="action-item">
+                    <div class="prio-tag ${a.p.toLowerCase()}">${a.p}</div>
+                    <div>
+                        <div style="font-weight:700; margin-bottom:4px;">${a.t}</div>
+                        <div style="color:var(--text-muted); font-size:0.9rem;">${a.d}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function downloadPDF() {
+            const el = document.getElementById('export-target');
+            const opt = {
+                margin: 10,
+                filename: 'Fiscor_Simulation_Result.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(el).save();
+        }
+    </script>
+</body>
+</html>
