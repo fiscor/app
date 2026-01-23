@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Assistant & Coach</title>
+    
+    <!-- Fonts Premium -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            /* Palette Fiscor */
+            --primary: #7C3AED;
+            --primary-dark: #5B21B6;
+            --primary-soft: #F5F3FF;
+            --bg-body: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #18181B;
+            --text-muted: #71717A;
+            --border: #E4E4E7;
+            
+            --p0-bg: #FEF2F2; --p0-text: #991B1B; --p0-border: #FCA5A5;
+            --p1-bg: #F5F3FF; --p1-text: #5B21B6; --p1-border: #C4B5FD;
+            --p2-bg: #F0FDF4; --p2-text: #166534; --p2-border: #86EFAC;
+
+            --radius-m: 16px;
+            --radius-l: 24px;
+            --shadow-float: 0 25px 50px -12px rgba(124, 58, 237, 0.15);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* RESET */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body {
+            margin: 0; font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body); color: var(--text-main);
+            line-height: 1.6; -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; color: var(--text-main); }
+        
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* LAYOUT */
+        .app-container {
+            max-width: 800px; margin: 0 auto; padding: 40px 24px;
+            min-height: 100vh; display: flex; flex-direction: column;
+        }
+
+        /* HEADER */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.25rem; }
+        .brand-icon {
+            width: 36px; height: 36px; background: var(--primary); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* INTRO VIEW */
+        .intro-hero {
+            background: var(--bg-subtle); border: 1px solid var(--border);
+            border-radius: var(--radius-l); padding: 40px; text-align: center;
+            box-shadow: var(--shadow-float);
+        }
+        .hero-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em; line-height: 1.2; }
+        .hero-sub { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+        /* SETUP FORM */
+        .setup-grid { display: grid; gap: 20px; text-align: left; margin-bottom: 30px; }
+        .setup-group { background: white; padding: 20px; border-radius: var(--radius-m); border: 1px solid var(--border); }
+        .setup-label { display: block; font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; }
+        
+        .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+        .chip-input { display: none; }
+        .chip-label {
+            padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border);
+            font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: 0.2s;
+            background: var(--bg-subtle); color: var(--text-muted);
+        }
+        .chip-input:checked + .chip-label {
+            background: var(--primary); color: white; border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
+        }
+
+        .issue-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        @media(min-width:600px) { .issue-grid { grid-template-columns: 1fr 1fr; } }
+        
+        /* DASHBOARD */
+        .dash-header { margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .dash-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+        .dash-sub { color: var(--text-muted); }
+
+        /* TABS */
+        .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 30px; border-bottom: 1px solid var(--border); }
+        .tab-btn {
+            padding: 10px 20px; border: none; background: transparent; font-weight: 600; font-size: 1rem;
+            color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; white-space: nowrap;
+        }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* CHECKLIST CARDS */
+        .cl-section { margin-bottom: 40px; }
+        .cl-section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
+        .badge-p0 { background: var(--p0-bg); color: var(--p0-text); border: 1px solid var(--p0-border); }
+        .badge-p1 { background: var(--p1-bg); color: var(--p1-text); border: 1px solid var(--p1-border); }
+        .badge-p2 { background: var(--p2-bg); color: var(--p2-text); border: 1px solid var(--p2-border); }
+
+        .task-card {
+            background: white; border: 1px solid var(--border); border-radius: 12px;
+            margin-bottom: 16px; overflow: hidden; transition: 0.2s;
+        }
+        .task-header {
+            padding: 16px; display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-subtle); cursor: pointer;
+        }
+        .task-header h4 { font-size: 1rem; font-weight: 600; margin: 0; }
+        .task-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 12px; align-items: center; }
+        
+        .task-body { padding: 20px; border-top: 1px solid var(--border); display: none; }
+        .task-card.expanded .task-body { display: block; }
+        
+        .checklist-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 0.95rem; }
+        .cb-input { margin-top: 4px; width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+        .cb-label { cursor: pointer; transition: 0.2s; }
+        .cb-input:checked + .cb-label { text-decoration: line-through; color: var(--text-light); }
+
+        .doc-list { background: #F1F5F9; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #475569; margin-top: 16px; }
+        .doc-title { font-weight: 700; margin-bottom: 4px; display: block; }
+
+        /* FAQ */
+        .faq-item { border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; background: white; }
+        .faq-q { font-weight: 700; margin-bottom: 8px; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-a { font-size: 0.9rem; color: var(--text-main); display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+        .faq-item.open .faq-a { display: block; }
+
+        /* BUTTONS */
+        .btn {
+            padding: 14px 28px; border-radius: 100px; font-weight: 600; cursor: pointer;
+            border: none; font-size: 1rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-ghost { background: transparent; color: var(--text-muted); }
+
+        /* LOADER */
+        .loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 50px; height: 50px; border: 4px solid var(--primary-soft); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 24px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .typing-text::after { content: '...'; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        @media print {
+            .no-print { display: none; }
+            .tabs { display: none; }
+            .tab-content { display: block !important; }
+            .task-body { display: block !important; }
+            .task-header { background: #eee !important; }
+            .app-container { max-width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- INTRO & SETUP -->
+    <div id="view-setup" class="app-container fade-in">
+        <header>
+            <div class="brand"><div class="brand-icon">A</div> Fiscor Assistant</div>
+        </header>
+
+        <div class="intro-hero">
+            <h1 class="hero-title">Votre Coach Administratif</h1>
+            <p class="hero-sub">Dites adieu au stress. Je génère votre liste d'actions prioritaires (P0) et votre routine (P1) pour ne rien oublier.</p>
+
+            <div class="setup-grid">
+                <!-- Status -->
+                <div class="setup-group">
+                    <span class="setup-label">Votre Statut</span>
+                    <div class="chip-group">
+                        <input type="radio" name="status" id="s_micro" value="micro" class="chip-input" checked>
+                        <label for="s_micro" class="chip-label">Micro-Entreprise</label>
+                        
+                        <input type="radio" name="status" id="s_soc" value="societe" class="chip-input">
+                        <label for="s_soc" class="chip-label">Société (SASU/EURL)</label>
+                        
+                        <input type="radio" name="status" id="s_ecom" value="ecom" class="chip-input">
+                        <label for="s_ecom" class="chip-label">E-Commerce</label>
+                    </div>
+                </div>
+
+                <!-- Pain Points (Multi select logic handled by JS) -->
+                <div class="setup-group">
+                    <span class="setup-label">Qu'est-ce qui vous inquiète ? (Urgent)</span>
+                    <div class="issue-grid">
+                        <label class="radio-option">
+                            <input type="checkbox" id="i_tva" style="margin-right:8px;"> Seuil / Déclaration TVA
+                        </label>
+                        <label class="radio-option">
+                            <input type="checkbox" id="i_urssaf" style="margin-right:8px;"> Retard URSSAF
+                        </label>
+                        <label class="radio-option">
+                            <input type="checkbox" id="i_docs" style="margin-right:8px;"> Justificatifs en vrac
+                        </label>
+                        <label class="radio-option">
+                            <input type="checkbox" id="i_fact" style="margin-right:8px;"> Factures clients incorrectes
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="generatePlan()">
+                Générer mon Plan d'Action
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="view-dash" class="app-container hidden">
+        <header class="no-print">
+            <div class="brand"><div class="brand-icon">A</div> Assistant</div>
+            <button class="btn btn-ghost" onclick="location.reload()">Nouveau Plan</button>
+        </header>
+
+        <div id="export-area">
+            <div class="dash-header">
+                <div class="dash-title">Votre Plan de Bataille</div>
+                <div class="dash-sub" id="welcome-msg">Analyse terminée. Vous avez 2 urgences P0.</div>
+            </div>
+
+            <div class="tabs no-print">
+                <button class="tab-btn active" onclick="switchTab('urgences')">🔥 Urgences (P0)</button>
+                <button class="tab-btn" onclick="switchTab('routine')">📅 Routine (P1)</button>
+                <button class="tab-btn" onclick="switchTab('optim')">🚀 Optimisation (P2)</button>
+                <button class="tab-btn" onclick="switchTab('faq')">❓ FAQ Rapide</button>
+            </div>
+
+            <!-- TAB: URGENCES -->
+            <div id="tab-urgences" class="tab-content fade-in">
+                <div id="list-p0">
+                    <!-- Injected JS -->
+                </div>
+                <div id="empty-p0" class="hidden" style="text-align:center; padding:40px; color:var(--text-muted);">
+                    <svg width="48" height="48" fill="none" stroke="var(--success)" stroke-width="2" style="margin-bottom:16px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <p>Aucune urgence critique détectée. Bravo !</p>
+                </div>
+            </div>
+
+            <!-- TAB: ROUTINE -->
+            <div id="tab-routine" class="tab-content hidden fade-in">
+                <div id="list-p1">
+                    <!-- Injected JS -->
+                </div>
+            </div>
+
+            <!-- TAB: OPTIM -->
+            <div id="tab-optim" class="tab-content hidden fade-in">
+                <div id="list-p2">
+                    <!-- Injected JS -->
+                </div>
+            </div>
+
+            <!-- TAB: FAQ -->
+            <div id="tab-faq" class="tab-content hidden fade-in">
+                <h3 style="margin-bottom:20px;">Réponses Rapides</h3>
+                <div id="faq-list">
+                    <!-- Injected JS -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="no-print" style="text-align:center; margin-top:40px;">
+            <button class="btn btn-primary" onclick="downloadPDF()">Télécharger mon Plan (PDF)</button>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+        <h3 class="typing-text" id="loader-txt">Analyse de la situation</h3>
+    </div>
+
+    <script>
+        // --- DATABASE ---
+        const CHECKLISTS = [
+            // P0 - URGENCES
+            {
+                id: 'cl_tva_seuil',
+                level: 'P0',
+                trigger: 'i_tva',
+                title: 'Alerte Seuil TVA dépassé',
+                time: '45 min',
+                steps: [
+                    'Identifier le mois exact du dépassement.',
+                    'Facturer la TVA dès le 1er jour du mois de dépassement (refaire factures si besoin).',
+                    'Envoyer un mail au SIE (Impôts) pour demander un numéro de TVA.',
+                    'Créer son compte pro sur impots.gouv.fr.'
+                ],
+                docs: 'Livre des recettes, Factures émises, Numéro SIRET.'
+            },
+            {
+                id: 'cl_urssaf_late',
+                level: 'P0',
+                trigger: 'i_urssaf',
+                title: 'Régularisation Retard URSSAF',
+                time: '30 min',
+                steps: [
+                    'Se connecter à autoentrepreneur.urssaf.fr.',
+                    'Déclarer le CA des périodes manquantes (même si 0€).',
+                    'Si impossibilité de payer : envoyer un message via la messagerie pour demander un délai.',
+                    'Ne jamais laisser une déclaration vide (pénalité forfaitaire).'
+                ],
+                docs: 'Relevés bancaires des périodes concernées.'
+            },
+            {
+                id: 'cl_fact_fix',
+                level: 'P0',
+                trigger: 'i_fact',
+                title: 'Mise en conformité Facturation',
+                time: '1h',
+                steps: [
+                    'Vérifier présence : "EI" ou "Entrepreneur Individuel" avant votre nom.',
+                    'Vérifier mention TVA : "TVA non applicable, art. 293 B du CGI" (si micro franchise).',
+                    'Vérifier numérotation : Séquence continue (F2024-001, 002...), pas de trous.',
+                    'Vérifier mention indemnité forfaitaire 40€.'
+                ],
+                docs: 'Modèle de facture actuel, Kbis/Avis Sirene.'
+            },
+
+            // P1 - ROUTINE
+            {
+                id: 'cl_monthly_micro',
+                level: 'P1',
+                trigger: 'micro', // generic
+                title: 'Routine Fin de Mois (Micro)',
+                time: '20 min',
+                steps: [
+                    'Mettre à jour le livre des recettes (Excel ou Logiciel).',
+                    'Vérifier que toutes les factures émises sont envoyées.',
+                    'Pointer les encaissements bancaires.',
+                    'Mettre de côté 25% du CA encaissé (Provisions).'
+                ],
+                docs: 'Relevé bancaire, Livre recettes.'
+            },
+            {
+                id: 'cl_docs_sort',
+                level: 'P1',
+                trigger: 'i_docs',
+                title: 'Rattrapage Archivage',
+                time: '2h',
+                steps: [
+                    'Créer un dossier Drive/Dropbox "Année > Mois > Achats / Ventes".',
+                    'Scanner/Prendre en photo tous les tickets de CB pro.',
+                    'Nommer les fichiers : "Date - Montant - Fournisseur".',
+                    'Jeter les tickets illisibles ou non pro.'
+                ],
+                docs: 'Boîte à chaussures, Scanner/Téléphone.'
+            },
+            
+            // P2 - OPTIM
+            {
+                id: 'cl_bank_split',
+                level: 'P2',
+                trigger: 'all',
+                title: 'Hygiène Bancaire',
+                time: '15 min',
+                steps: [
+                    'Vérifier qu\'aucune dépense perso n\'est passée sur le compte pro.',
+                    'Vérifier qu\'aucun encaissement pro n\'est sur le compte perso.',
+                    'Si erreur : faire un virement de régularisation avec libellé clair "Régul erreur".'
+                ],
+                docs: 'Relevé bancaire.'
+            },
+            {
+                id: 'cl_cfe_check',
+                level: 'P2',
+                trigger: 'all',
+                title: 'Anticipation CFE',
+                time: '5 min',
+                steps: [
+                    'Aller sur impots.gouv > Espace Pro.',
+                    'Vérifier la messagerie (Avis de CFE disponible en Nov/Dec).',
+                    'Si 1ère année : vérifier l\'exonération (Déclaration initiale 1447-C).'
+                ],
+                docs: 'Identifiants impots.gouv.'
+            }
+        ];
+
+        const FAQS = [
+            { q: "Je dépasse le seuil de TVA, c'est grave ?", a: "Non, c'est bon signe ! Mais urgent. Vous devez facturer la TVA dès le 1er jour du mois de dépassement. Si vous avez déjà facturé sans TVA ce mois-ci, envoyez des factures rectificatives." },
+            { q: "J'ai oublié de déclarer mon CA URSSAF", a: "Faites-le immédiatement. Même avec 1 jour de retard, la pénalité est de ~50€. Si le retard est long, une taxation d'office (très élevée) sera appliquée. Déclarez 'Néant' si 0€." },
+            { q: "Puis-je déduire mes repas en Micro ?", a: "Non. En micro-entreprise, vous avez un abattement forfaitaire. Vous ne pouvez déduire aucune charge réelle (ni repas, ni essence, ni loyer). C'est la contrepartie de la simplicité." },
+            { q: "Dois-je un compte bancaire pro ?", a: "Obligatoire en Société. En Micro, un compte dédié (séparé du perso) est obligatoire si CA > 10k€ pendant 2 ans. Fortement recommandé dès le début pour éviter les erreurs." }
+        ];
+
+        // --- LOGIC ---
+
+        function generatePlan() {
+            // 1. Get Inputs
+            const status = document.querySelector('input[name="status"]:checked').value;
+            const issues = {
+                tva: document.getElementById('i_tva').checked,
+                urssaf: document.getElementById('i_urssaf').checked,
+                docs: document.getElementById('i_docs').checked,
+                fact: document.getElementById('i_fact').checked
+            };
+
+            // 2. Loading UI
+            document.getElementById('view-setup').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+
+            const msgs = ["Analyse de votre profil...", "Recherche des solutions...", "Construction du plan..."];
+            let i = 0;
+            const interval = setInterval(() => {
+                if(msgs[i]) document.getElementById('loader-txt').innerText = msgs[i];
+                i++;
+            }, 800);
+
+            // 3. Filter Checklists
+            setTimeout(() => {
+                clearInterval(interval);
+                renderDash(status, issues);
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('view-dash').classList.remove('hidden');
+            }, 2500);
+        }
+
+        function renderDash(status, issues) {
+            const p0Container = document.getElementById('list-p0');
+            const p1Container = document.getElementById('list-p1');
+            const p2Container = document.getElementById('list-p2');
+            
+            p0Container.innerHTML = '';
+            p1Container.innerHTML = '';
+            p2Container.innerHTML = '';
+
+            let countP0 = 0;
+
+            CHECKLISTS.forEach(cl => {
+                let show = false;
+                
+                // Trigger logic
+                if (cl.trigger === 'all') show = true;
+                else if (cl.trigger === 'micro' && status === 'micro') show = true;
+                else if (cl.trigger === 'societe' && status === 'societe') show = true;
+                else if (issues.tva && cl.trigger === 'i_tva') show = true;
+                else if (issues.urssaf && cl.trigger === 'i_urssaf') show = true;
+                else if (issues.docs && cl.trigger === 'i_docs') show = true;
+                else if (issues.fact && cl.trigger === 'i_fact') show = true;
+
+                if (show) {
+                    const html = createCard(cl);
+                    if (cl.level === 'P0') { p0Container.innerHTML += html; countP0++; }
+                    else if (cl.level === 'P1') p1Container.innerHTML += html;
+                    else if (cl.level === 'P2') p2Container.innerHTML += html;
+                }
+            });
+
+            // Empty state P0
+            if (countP0 === 0) document.getElementById('empty-p0').classList.remove('hidden');
+            
+            // Welcome msg
+            const msg = countP0 > 0 
+                ? `Attention, vous avez <strong>${countP0} urgence(s)</strong> critique(s).` 
+                : "Tout semble sous contrôle. Voici votre routine.";
+            document.getElementById('welcome-msg').innerHTML = msg;
+
+            // Render FAQ
+            const faqContainer = document.getElementById('faq-list');
+            faqContainer.innerHTML = FAQS.map(f => `
+                <div class="faq-item" onclick="this.classList.toggle('open')">
+                    <div class="faq-q">${f.q} <span>+</span></div>
+                    <div class="faq-a">${f.a}</div>
+                </div>
+            `).join('');
+        }
+
+        function createCard(cl) {
+            const stepsHtml = cl.steps.map(s => `
+                <div class="checklist-item">
+                    <input type="checkbox" class="cb-input">
+                    <span class="cb-label">${s}</span>
+                </div>
+            `).join('');
+
+            return `
+                <div class="task-card" onclick="toggleCard(this)">
+                    <div class="task-header">
+                        <div>
+                            <span class="badge badge-${cl.level.toLowerCase()}">${cl.level}</span>
+                            <span style="font-weight:600; margin-left:8px;">${cl.title}</span>
+                        </div>
+                        <div class="task-meta">
+                            <span>⏱ ${cl.time}</span>
+                            <span>▼</span>
+                        </div>
+                    </div>
+                    <div class="task-body">
+                        <div style="margin-bottom:16px;">${stepsHtml}</div>
+                        ${cl.docs ? `
+                        <div class="doc-list">
+                            <span class="doc-title">📂 Documents nécessaires :</span>
+                            ${cl.docs}
+                        </div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleCard(card) {
+            // Prevent toggling if clicking checkbox
+            if (event.target.type === 'checkbox') return;
+            card.classList.toggle('expanded');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+        }
+
+        function downloadPDF() {
+            const el = document.getElementById('export-area');
+            const opt = {
+                margin: 10,
+                filename: 'Fiscor_Plan_Action.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(el).save();
+        }
+    </script>
+</body>
+</html>
