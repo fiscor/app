@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Facture Export</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .editor-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+        .preview-col { flex: 1.2; min-width: 400px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1400px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Cards */
+        .section-card {
+            background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .section-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; justify-content: space-between;
+            align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        }
+
+        /* Forms */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .full-width { grid-column: 1 / -1; }
+        .inp-group { display: flex; flex-direction: column; gap: 6px; }
+        .inp-label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .inp-field {
+            width: 100%; background: var(--bg-subtle); border: 1px solid var(--border);
+            padding: 12px; border-radius: 8px; color: var(--text-main); font-size: 0.9rem;
+            font-family: inherit; transition: 0.2s;
+        }
+        .inp-field:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 3px var(--accent-light); }
+        textarea.inp-field { resize: vertical; min-height: 80px; }
+
+        /* Checklist Box */
+        .checklist-box {
+            background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 12px; padding: 16px;
+        }
+        .cl-title { font-weight: 700; color: #92400E; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .cl-item { display: flex; gap: 8px; font-size: 0.85rem; color: #78350F; margin-bottom: 6px; align-items: flex-start; }
+        .cl-check { min-width: 16px; color: #F59E0B; margin-top: 2px; }
+
+        /* Items */
+        .items-container { display: flex; flex-direction: column; gap: 12px; }
+        .item-row {
+            display: grid; grid-template-columns: 3fr 0.8fr 1.2fr auto; gap: 10px;
+            align-items: center; padding: 10px; border: 1px dashed var(--border);
+            border-radius: 8px; background: white;
+        }
+        .btn-icon {
+            background: none; border: none; cursor: pointer; color: var(--text-secondary);
+            padding: 6px; border-radius: 6px; transition: 0.2s;
+        }
+        .btn-icon:hover { color: var(--danger); background: #FEF2F2; }
+        .btn-add {
+            width: 100%; padding: 12px; border: 1px dashed var(--border);
+            background: var(--bg-subtle); color: var(--accent); font-weight: 600;
+            border-radius: 8px; cursor: pointer; transition: 0.2s; margin-top: 10px;
+        }
+        .btn-add:hover { background: var(--accent-light); border-color: var(--accent); }
+
+        /* Toolbar */
+        .toolbar { display: flex; gap: 12px; margin-bottom: 0; }
+        .btn-tool {
+            flex: 1; padding: 14px; border-radius: 100px; font-weight: 600; font-size: 0.95rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            border: 1px solid var(--border); background: white; color: var(--text-main); transition: 0.2s;
+        }
+        .btn-tool:hover { transform: translateY(-2px); border-color: var(--accent); color: var(--accent); }
+        .btn-primary { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+        .btn-primary:hover { background: var(--accent-dark); color: white; border-color: var(--accent-dark); }
+
+        /* Config Bar (Lang/Currency) */
+        .config-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+        .config-select { flex: 1; }
+
+        /* PREVIEW */
+        .paper-wrapper {
+            background: #525659; padding: 20px; border-radius: 4px;
+            display: flex; justify-content: center; overflow: auto;
+        }
+        .paper {
+            background: white; width: 210mm; min-height: 297mm; padding: 15mm;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;
+            color: #000; font-size: 14px; line-height: 1.4; font-family: 'Inter', sans-serif;
+        }
+
+        .doc-header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .seller-block { font-size: 0.9rem; width: 45%; }
+        .seller-name { font-weight: 800; font-size: 1.4rem; text-transform: uppercase; margin-bottom: 8px; color: var(--accent); }
+        .client-block { text-align: right; width: 45%; }
+        .client-label { font-size: 0.75rem; text-transform: uppercase; color: #666; font-weight: 700; margin-bottom: 4px; }
+        .client-name { font-weight: 700; font-size: 1.1rem; }
+
+        .doc-meta {
+            display: flex; gap: 30px; border-top: 2px solid #000; border-bottom: 1px solid #eee;
+            padding: 15px 0; margin-bottom: 30px;
+        }
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-label { font-size: 0.7rem; text-transform: uppercase; color: #666; font-weight: 700; }
+        .meta-val { font-weight: 700; font-size: 1rem; }
+
+        .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .doc-table th { text-align: left; padding: 10px 0; border-bottom: 2px solid #000; font-size: 0.75rem; text-transform: uppercase; }
+        .doc-table td { padding: 12px 0; border-bottom: 1px solid #eee; }
+        .col-num { text-align: right; }
+
+        .doc-totals { margin-left: auto; width: 40%; display: flex; flex-direction: column; gap: 8px; }
+        .total-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
+        .total-row.final { font-weight: 800; font-size: 1.2rem; border-top: 2px solid #000; padding-top: 8px; margin-top: 4px; }
+
+        .doc-conditions { margin-top: 40px; font-size: 0.8rem; color: #444; border-top: 1px solid #eee; padding-top: 20px; }
+        .doc-footer {
+            position: absolute; bottom: 15mm; left: 15mm; right: 15mm;
+            text-align: center; font-size: 0.7rem; color: #999; border-top: 1px solid #eee; padding-top: 10px;
+        }
+
+        /* LOADER */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 900px) {
+            .workspace { flex-direction: column; }
+            .paper { width: 100%; min-height: auto; aspect-ratio: 210/297; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Génération de la Facture Export...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div> EXPORT</div>
+    </div>
+
+    <div class="workspace">
+        
+        <div class="editor-col">
+            
+            <div class="config-bar">
+                <select id="lang-select" class="inp-field config-select" onchange="update()">
+                    <option value="fr">Français (FR)</option>
+                    <option value="en">English (EN)</option>
+                </select>
+                <select id="currency-select" class="inp-field config-select" onchange="update()">
+                    <option value="EUR">Euro (€)</option>
+                    <option value="USD">Dollar ($)</option>
+                    <option value="GBP">Livre (£)</option>
+                </select>
+            </div>
+
+            <div class="toolbar">
+                <button class="btn-tool" onclick="resetForm()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                    Nouveau
+                </button>
+                <button class="btn-tool btn-primary" onclick="exportPDF()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    PDF
+                </button>
+            </div>
+
+            <!-- 1. Scénario -->
+            <div class="section-card">
+                <div class="section-title">Contexte Fiscal (Crucial)</div>
+                <div class="grid-2">
+                    <div class="inp-group">
+                        <label class="inp-label">Votre Statut</label>
+                        <select id="my-status" class="inp-field" onchange="update()">
+                            <option value="micro">Micro-Entreprise (Franchise)</option>
+                            <option value="reel">Société / Réel (Assujetti TVA)</option>
+                        </select>
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Localisation Client</label>
+                        <select id="cli-loc" class="inp-field" onchange="update()">
+                            <option value="ue">Union Européenne</option>
+                            <option value="world">Hors UE (Monde)</option>
+                        </select>
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Type Client</label>
+                        <select id="cli-type" class="inp-field" onchange="update()">
+                            <option value="pro">Professionnel (B2B)</option>
+                            <option value="part">Particulier (B2C)</option>
+                        </select>
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Vente de...</label>
+                        <select id="sale-type" class="inp-field" onchange="update()">
+                            <option value="service">Services (Prestations)</option>
+                            <option value="goods">Biens / Marchandises</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checklist Preuves -->
+            <div class="checklist-box" id="proof-box">
+                <div class="cl-title">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    Preuves à conserver (Impératif)
+                </div>
+                <div id="proof-list">
+                    <!-- JS Generated -->
+                </div>
+            </div>
+
+            <!-- 2. Infos -->
+            <div class="section-card">
+                <div class="section-title">Parties & Facture</div>
+                <div class="grid-2">
+                    <div class="inp-group">
+                        <label class="inp-label">Vendeur</label>
+                        <input class="inp-field" id="seller-name" placeholder="Votre Société" oninput="update()">
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Client</label>
+                        <input class="inp-field" id="client-name" placeholder="Client Name" oninput="update()">
+                    </div>
+                    <div class="inp-group full-width">
+                        <label class="inp-label">Adresse Vendeur</label>
+                        <textarea class="inp-field" id="seller-details" rows="2" oninput="update()"></textarea>
+                    </div>
+                    <div class="inp-group full-width">
+                        <label class="inp-label">Adresse Client (Pays obligatoire)</label>
+                        <textarea class="inp-field" id="client-details" rows="2" oninput="update()"></textarea>
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">N° TVA Intracom Client</label>
+                        <input class="inp-field" id="client-vat" placeholder="Ex: DE123456789" oninput="update()">
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Numéro Facture</label>
+                        <input class="inp-field" id="doc-num" placeholder="E-2024-001" oninput="update()">
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Date</label>
+                        <input type="date" class="inp-field" id="doc-date" onchange="update()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Lignes -->
+            <div class="section-card">
+                <div class="section-title">Lignes</div>
+                <div id="items-list" class="items-container"></div>
+                <button class="btn-add" onclick="addItem()">+ Ajouter</button>
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="preview-col">
+            <div class="paper-wrapper">
+                <div id="paper" class="paper">
+                    <div class="doc-header">
+                        <div class="seller-block">
+                            <div class="seller-name" id="p-seller-name">SOCIETE</div>
+                            <div style="white-space: pre-line; color:#444;" id="p-seller-details">...</div>
+                        </div>
+                        <div class="client-block">
+                            <div class="client-label" id="lbl-billto">FACTURÉ À</div>
+                            <div class="client-name" id="p-client-name">CLIENT</div>
+                            <div style="white-space: pre-line; color:#444;" id="p-client-details">...</div>
+                            <div style="margin-top:4px; font-weight:600;" id="p-client-vat"></div>
+                        </div>
+                    </div>
+
+                    <div class="doc-meta">
+                        <div class="meta-item">
+                            <span class="meta-label" id="lbl-num">N° FACTURE</span>
+                            <span class="meta-val" id="p-num">E-0000</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label" id="lbl-date">DATE</span>
+                            <span class="meta-val" id="p-date">01/01/2024</span>
+                        </div>
+                    </div>
+
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th width="55%" id="th-desc">DESCRIPTION</th>
+                                <th width="15%" class="col-num" id="th-qty">QTÉ</th>
+                                <th width="15%" class="col-num" id="th-price">PRIX U.</th>
+                                <th width="15%" class="col-num">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="p-rows"></tbody>
+                    </table>
+
+                    <div class="doc-totals">
+                        <div class="total-row"><span>Total HT</span><span id="p-total-ht">0,00</span></div>
+                        <div class="total-row" id="row-tva"><span>TVA (0%)</span><span>0,00</span></div>
+                        <div class="total-row final"><span>Total <span id="p-curr">EUR</span></span><span id="p-total-ttc">0,00</span></div>
+                    </div>
+
+                    <div class="doc-conditions">
+                        <strong id="lbl-legal">Mentions légales :</strong> <span id="p-legal-mentions">...</span><br>
+                        <br>
+                        <strong id="lbl-pay">Paiement :</strong> Virement bancaire / Bank Transfer.<br>
+                        IBAN: <span id="p-iban">FR76 ...</span>
+                    </div>
+
+                    <div class="doc-footer">
+                        Fiscor Export Generation - <span id="p-page">Page 1/1</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // DICTIONARY
+        const I18N = {
+            fr: { billTo: "FACTURÉ À", num: "N° FACTURE", date: "DATE", desc: "DESCRIPTION", qty: "QTÉ", price: "PRIX U.", legal: "Mentions légales :", pay: "Paiement :" },
+            en: { billTo: "BILL TO", num: "INVOICE NO", date: "DATE", desc: "DESCRIPTION", qty: "QTY", price: "UNIT PRICE", legal: "Legal Notes:", pay: "Payment Terms:" }
+        };
+
+        const CURRENCIES = { EUR: "€", USD: "$", GBP: "£" };
+
+        let data = {
+            config: { lang: 'fr', curr: 'EUR', status: 'micro', loc: 'ue', type: 'pro', sale: 'service' },
+            seller: { name: '', details: '' },
+            client: { name: '', details: '', vat: '' },
+            doc: { num: '', date: '' },
+            items: [{ desc: 'Prestation / Service', qty: 1, price: 1000 }]
+        };
+
+        // INIT
+        function init() {
+            const now = new Date();
+            data.doc.date = now.toISOString().split('T')[0];
+            data.doc.num = `E-${now.getFullYear()}-${String(Math.floor(Math.random()*1000)).padStart(3,'0')}`;
+            
+            const saved = localStorage.getItem('fiscor_export_draft');
+            if(saved) data = JSON.parse(saved);
+
+            // Set Inputs
+            document.getElementById('lang-select').value = data.config.lang;
+            document.getElementById('currency-select').value = data.config.curr;
+            document.getElementById('my-status').value = data.config.status;
+            document.getElementById('cli-loc').value = data.config.loc;
+            document.getElementById('cli-type').value = data.config.type;
+            document.getElementById('sale-type').value = data.config.sale;
+
+            document.getElementById('seller-name').value = data.seller.name;
+            document.getElementById('seller-details').value = data.seller.details;
+            document.getElementById('client-name').value = data.client.name;
+            document.getElementById('client-details').value = data.client.details;
+            document.getElementById('client-vat').value = data.client.vat;
+            document.getElementById('doc-num').value = data.doc.num;
+            document.getElementById('doc-date').value = data.doc.date;
+
+            renderItems();
+            update();
+        }
+
+        function addItem() {
+            data.items.push({ desc: '', qty: 1, price: 0 });
+            renderItems();
+            update();
+        }
+
+        function removeItem(idx) {
+            if(data.items.length > 1) {
+                data.items.splice(idx, 1);
+                renderItems();
+                update();
+            }
+        }
+
+        function renderItems() {
+            const container = document.getElementById('items-list');
+            container.innerHTML = data.items.map((item, idx) => `
+                <div class="item-row">
+                    <input class="inp-field" value="${item.desc}" oninput="updateItem(${idx}, 'desc', this.value)">
+                    <input type="number" class="inp-field" value="${item.qty}" oninput="updateItem(${idx}, 'qty', this.value)">
+                    <input type="number" class="inp-field" value="${item.price}" oninput="updateItem(${idx}, 'price', this.value)">
+                    <button class="btn-icon" onclick="removeItem(${idx})">X</button>
+                </div>
+            `).join('');
+        }
+
+        function updateItem(idx, field, val) {
+            data.items[idx][field] = field === 'desc' ? val : parseFloat(val) || 0;
+            update();
+        }
+
+        function getLegalContext() {
+            const c = data.config;
+            let mention = "";
+            let proofs = [];
+
+            // 1. MICRO ENTREPRISE (Always No VAT)
+            if (c.status === 'micro') {
+                mention = "TVA non applicable, art. 293 B du CGI.";
+                if (c.loc === 'ue' && c.type === 'pro') {
+                    mention += " (Autoliquidation).";
+                    proofs.push("N° TVA Intracom du client (Vérifié VIES).");
+                    proofs.push("Déclaration DES (Douane) obligatoire pour Services.");
+                } else if (c.loc === 'world') {
+                    proofs.push("Preuve de sortie du territoire (si Biens).");
+                }
+            }
+            // 2. REEL / SOCIETE
+            else {
+                // HORS UE (Export)
+                if (c.loc === 'world') {
+                    mention = "Exonération de TVA, art. 262 I du CGI (Exportation).";
+                    if(c.sale === 'goods') proofs.push("DAU (Document Administratif Unique) Douane.");
+                    proofs.push("Preuve de transport (BL, Tracking).");
+                } 
+                // UE B2B (Intracom)
+                else if (c.loc === 'ue' && c.type === 'pro') {
+                    if (c.sale === 'goods') mention = "Exonération de TVA, art. 262 ter I du CGI (Livraison Intracommunautaire).";
+                    else mention = "Autoliquidation, art. 283-2 du CGI (Reverse Charge).";
+                    
+                    proofs.push("N° TVA Intracom Client Valide (Impératif).");
+                    proofs.push("Déclaration DES (Services) ou DEB (Biens).");
+                }
+                // UE B2C (Particulier)
+                else if (c.loc === 'ue' && c.type === 'part') {
+                    // Complex rules (OSS vs Threshold). Assume French VAT for simplicity in this tool context, or OSS hint.
+                    mention = "TVA Française incluse (sauf OSS)."; 
+                    proofs.push("Preuve de localisation client (IP, Adresse).");
+                }
+            }
+
+            return { mention, proofs };
+        }
+
+        function update() {
+            // Read Inputs
+            data.config.lang = document.getElementById('lang-select').value;
+            data.config.curr = document.getElementById('currency-select').value;
+            data.config.status = document.getElementById('my-status').value;
+            data.config.loc = document.getElementById('cli-loc').value;
+            data.config.type = document.getElementById('cli-type').value;
+            data.config.sale = document.getElementById('sale-type').value;
+
+            data.seller.name = document.getElementById('seller-name').value;
+            data.seller.details = document.getElementById('seller-details').value;
+            data.client.name = document.getElementById('client-name').value;
+            data.client.details = document.getElementById('client-details').value;
+            data.client.vat = document.getElementById('client-vat').value;
+            data.doc.num = document.getElementById('doc-num').value;
+            data.doc.date = document.getElementById('doc-date').value;
+
+            // Logic
+            const ctx = getLegalContext();
+            const symbol = CURRENCIES[data.config.curr];
+            const labels = I18N[data.config.lang];
+
+            // Render Preview Labels
+            document.getElementById('lbl-billto').innerText = labels.billTo;
+            document.getElementById('lbl-num').innerText = labels.num;
+            document.getElementById('lbl-date').innerText = labels.date;
+            document.getElementById('th-desc').innerText = labels.desc;
+            document.getElementById('th-qty').innerText = labels.qty;
+            document.getElementById('th-price').innerText = labels.price;
+            document.getElementById('lbl-legal').innerText = labels.legal;
+            document.getElementById('lbl-pay').innerText = labels.pay;
+
+            // Render Data
+            document.getElementById('p-seller-name').innerText = data.seller.name || "COMPANY";
+            document.getElementById('p-seller-details').innerText = data.seller.details;
+            document.getElementById('p-client-name').innerText = data.client.name || "CLIENT";
+            document.getElementById('p-client-details').innerText = data.client.details;
+            document.getElementById('p-client-vat').innerText = data.client.vat ? "VAT: " + data.client.vat : "";
+            
+            document.getElementById('p-num').innerText = data.doc.num;
+            document.getElementById('p-date').innerText = data.doc.date;
+            document.getElementById('p-curr').innerText = data.config.curr;
+
+            // Rows & Totals
+            let total = 0;
+            const rowsHtml = data.items.map(i => {
+                const rowTot = i.qty * i.price;
+                total += rowTot;
+                return `<tr>
+                    <td>${i.desc}</td>
+                    <td class="col-num">${i.qty}</td>
+                    <td class="col-num">${i.price.toFixed(2)} ${symbol}</td>
+                    <td class="col-num">${rowTot.toFixed(2)} ${symbol}</td>
+                </tr>`;
+            }).join('');
+            
+            document.getElementById('p-rows').innerHTML = rowsHtml;
+            document.getElementById('p-total-ht').innerText = total.toFixed(2) + " " + symbol;
+            document.getElementById('p-total-ttc').innerText = total.toFixed(2) + " " + symbol; // Assuming 0 VAT for export context usually
+            document.getElementById('p-legal-mentions').innerText = ctx.mention;
+
+            // Proof List
+            const proofHtml = ctx.proofs.map(p => `<div class="cl-item"><span class="cl-check">✔</span>${p}</div>`).join('');
+            document.getElementById('proof-list').innerHTML = proofHtml || '<div class="cl-item">Aucune preuve spécifique requise (cas standard).</div>';
+
+            localStorage.setItem('fiscor_export_draft', JSON.stringify(data));
+        }
+
+        function resetForm() {
+            if(confirm("Réinitialiser ?")) {
+                localStorage.removeItem('fiscor_export_draft');
+                location.reload();
+            }
+        }
+
+        function exportPDF() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                const element = document.getElementById('paper');
+                const opt = {
+                    margin: 0,
+                    filename: `${data.doc.num || 'export'}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save().then(() => loader.style.display = 'none');
+            }, 1000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

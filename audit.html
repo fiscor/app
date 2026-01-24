@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Audit 360°</title>
+    
+    <!-- Fonts Premium -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            /* Palette Fiscor */
+            --primary: #7C3AED;
+            --primary-dark: #5B21B6;
+            --primary-soft: #F5F3FF;
+            --primary-glass: rgba(124, 58, 237, 0.08);
+            
+            --bg-body: #FFFFFF;
+            --bg-surface: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            
+            --text-main: #18181B;
+            --text-muted: #71717A;
+            --text-light: #A1A1AA;
+
+            --border: #E4E4E7;
+            
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --critique: #991B1B;
+            
+            --shadow-float: 0 25px 50px -12px rgba(124, 58, 237, 0.15);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+
+            --radius-m: 16px;
+            --radius-l: 24px;
+        }
+
+        /* RESET */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body {
+            margin: 0; font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body); color: var(--text-main);
+            line-height: 1.6; -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; color: var(--text-main); }
+        
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ICONS */
+        .icon-svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* LAYOUT */
+        .app-container {
+            max-width: 900px; margin: 0 auto; padding: 40px 24px;
+            min-height: 100vh; display: flex; flex-direction: column;
+        }
+
+        /* HEADER */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.25rem; }
+        .brand-icon {
+            width: 36px; height: 36px; background: var(--primary); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* INTRO */
+        .intro-hero {
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-l); padding: 40px; text-align: center;
+            box-shadow: var(--shadow-float);
+        }
+        .hero-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em; line-height: 1.2; }
+        .hero-sub { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 30px; max-width: 650px; margin-left: auto; margin-right: auto; }
+
+        .modules-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; text-align: left; margin-bottom: 40px; }
+        .module-badge {
+            background: var(--bg-subtle); border: 1px solid var(--border);
+            padding: 12px 16px; border-radius: 100px; font-size: 0.9rem; font-weight: 600;
+            display: flex; align-items: center; gap: 8px; color: var(--text-main);
+        }
+        .module-badge svg { color: var(--primary); }
+
+        /* WIZARD */
+        .wizard-container { max-width: 700px; margin: 0 auto; width: 100%; }
+        .progress-bar { height: 6px; background: var(--bg-subtle); border-radius: 10px; margin-bottom: 24px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s ease; }
+        
+        .mod-indicator { font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; }
+        
+        .question-card { margin-bottom: 32px; animation: fadeIn 0.4s ease; }
+        .q-label { font-size: 1.3rem; font-weight: 700; margin-bottom: 12px; color: var(--text-main); line-height: 1.3; }
+        .q-sub { font-size: 1rem; color: var(--text-muted); margin-bottom: 24px; }
+
+        .response-grid { display: grid; gap: 12px; }
+        .response-btn {
+            padding: 16px 20px; background: white; border: 2px solid var(--border);
+            border-radius: 12px; text-align: left; cursor: pointer; transition: all 0.2s;
+            font-size: 1rem; font-weight: 500; display: flex; align-items: center; gap: 12px;
+        }
+        .response-btn:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .response-btn.selected { border-color: var(--primary); background: var(--primary-soft); color: var(--primary-dark); font-weight: 700; }
+        
+        /* REPORT */
+        .report-wrapper { background: white; border-radius: var(--radius-l); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-card); }
+        .report-header { 
+            background: var(--bg-surface); padding: 40px; text-align: center; border-bottom: 1px solid var(--border);
+        }
+        .score-display {
+            width: 140px; height: 140px; border-radius: 50%; border: 8px solid var(--bg-subtle);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin: 0 auto 24px; position: relative;
+        }
+        .score-val { font-size: 3rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+        .score-lbl { font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-top: 4px; }
+        
+        .risk-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        .risk-table th { text-align: left; padding: 12px 20px; background: var(--bg-subtle); font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        .risk-table td { padding: 16px 20px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 0.95rem; }
+        .risk-table tr:last-child td { border-bottom: none; }
+
+        .tag { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; display: inline-block; }
+        .tag-critique { background: var(--critique); color: white; }
+        .tag-majeur { background: var(--danger); color: white; }
+        .tag-important { background: var(--warning); color: white; }
+        .tag-mineur { background: var(--bg-subtle); color: var(--text-muted); }
+
+        .section-block { padding: 30px; border-bottom: 1px solid var(--border); }
+        .section-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .action-item { display: flex; gap: 12px; margin-bottom: 12px; }
+        .action-check { min-width: 20px; color: var(--success); margin-top: 2px; }
+
+        /* BUTTONS */
+        .btn {
+            padding: 14px 28px; border-radius: 100px; font-weight: 600; cursor: pointer;
+            border: none; font-size: 1rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-ghost { background: transparent; color: var(--text-muted); }
+        .btn-ghost:hover { background: var(--bg-subtle); color: var(--text-main); }
+
+        /* LOADER */
+        .loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 50px; height: 50px; border: 4px solid var(--primary-soft); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 24px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media print {
+            .no-print { display: none !important; }
+            .app-container { padding: 0; max-width: 100%; }
+            .report-wrapper { border: none; box-shadow: none; }
+            .section-block { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. INTRO -->
+    <div id="view-intro" class="app-container fade-in">
+        <header>
+            <div class="brand"><div class="brand-icon"><svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>Fiscor</div>
+        </header>
+
+        <div class="intro-hero">
+            <h1 class="hero-title">Audit Complet 360°</h1>
+            <p class="hero-sub">Passez votre activité au crible. 12 modules d'analyse pour identifier vos risques fiscaux, sociaux et juridiques, et générer votre plan de conformité.</p>
+            
+            <div class="modules-list">
+                <div class="module-badge"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg> Profil & Structure</div>
+                <div class="module-badge"><svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg> TVA & Seuils</div>
+                <div class="module-badge"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg> Social & URSSAF</div>
+                <div class="module-badge"><svg class="icon-svg" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg> Facturation</div>
+                <div class="module-badge"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Archivage</div>
+                <div class="module-badge"><svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> International</div>
+            </div>
+
+            <button class="btn btn-primary" onclick="startWizard()">
+                Lancer l'Audit (8 min)
+                <svg class="icon-svg" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. WIZARD -->
+    <div id="view-wizard" class="app-container hidden">
+        <header>
+            <div class="brand"><div class="brand-icon">A</div> Audit</div>
+            <div class="btn-ghost" onclick="location.reload()" style="font-size:0.9rem; cursor:pointer;">Annuler</div>
+        </header>
+
+        <div class="wizard-container">
+            <div class="mod-indicator">
+                <span id="module-name">Module 1 : Structure</span>
+                <span id="q-count">1/12</span>
+            </div>
+            <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+            
+            <div id="question-area">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Validation/Next handled by click on option for speed -->
+        </div>
+    </div>
+
+    <!-- 3. REPORT -->
+    <div id="view-report" class="app-container hidden">
+        <header class="no-print">
+            <div class="brand"><div class="brand-icon">R</div> Rapport d'Audit</div>
+            <button class="btn btn-ghost" onclick="location.reload()">Nouvel Audit</button>
+        </header>
+
+        <div id="export-target" class="report-wrapper">
+            <!-- HEADER -->
+            <div class="report-header">
+                <h2 style="font-size:2rem; font-weight:800; margin-bottom:30px;">Synthèse de Conformité</h2>
+                
+                <div class="score-display" id="score-circle">
+                    <span class="score-val" id="final-score">82</span>
+                    <span class="score-lbl">Score Global</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:16px; margin-top:30px;">
+                    <div style="background:white; padding:12px; border-radius:8px; border:1px solid var(--border);">
+                        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Fiscalité</div>
+                        <div style="font-size:1.2rem; font-weight:800; color:var(--text-main);" id="sub-fiscal">0/100</div>
+                    </div>
+                    <div style="background:white; padding:12px; border-radius:8px; border:1px solid var(--border);">
+                        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Social</div>
+                        <div style="font-size:1.2rem; font-weight:800; color:var(--text-main);" id="sub-social">0/100</div>
+                    </div>
+                    <div style="background:white; padding:12px; border-radius:8px; border:1px solid var(--border);">
+                        <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Gestion</div>
+                        <div style="font-size:1.2rem; font-weight:800; color:var(--text-main);" id="sub-gestion">0/100</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RISK TABLE -->
+            <div class="section-block">
+                <h3 class="section-title">
+                    <svg class="icon-svg" style="color:var(--danger);" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Matrice des Risques Identifiés
+                </h3>
+                <table class="risk-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">Gravité</th>
+                            <th width="30%">Non-Conformité</th>
+                            <th width="55%">Action Corrective & Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody id="risk-rows">
+                        <!-- Injected -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ACTION PLAN -->
+            <div class="section-block" style="border-bottom:none;">
+                <h3 class="section-title">
+                    <svg class="icon-svg" style="color:var(--primary);" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                    Plan d'Action 90 Jours
+                </h3>
+                <div id="action-plan">
+                    <!-- Injected -->
+                </div>
+            </div>
+        </div>
+
+        <div class="actions no-print" style="justify-content:center; margin-top:40px;">
+            <button class="btn btn-primary" onclick="downloadPDF()">Télécharger le Rapport Complet (PDF)</button>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+        <h3 id="loader-msg">Analyse des réponses...</h3>
+    </div>
+
+    <script>
+        // --- DATA : QUESTIONS ---
+        const MODULES = [
+            {
+                id: 'struct',
+                name: 'Structure & Profil',
+                questions: [
+                    { id: 'status', q: 'Quel est votre statut juridique ?', opts: [{l:'Micro-Entreprise', v:'micro'}, {l:'Société (SASU/EURL)', v:'soc'}, {l:'EI au Réel', v:'ei'}] },
+                    { id: 'ca_trend', q: 'Quelle est la tendance de votre CA ?', opts: [{l:'Stable / Faible', v:'low'}, {l:'En forte croissance', v:'grow'}, {l:'Proche des seuils max', v:'max'}] }
+                ]
+            },
+            {
+                id: 'tva',
+                name: 'TVA & Fiscalité',
+                questions: [
+                    { id: 'tva_regime', q: 'Régime de TVA actuel', opts: [{l:'Franchise en base (Pas de TVA)', v:'franchise'}, {l:'Réel Simplifié/Normal (TVA facturée)', v:'reel'}] },
+                    { id: 'tva_seuil', q: 'Avez-vous vérifié vos seuils de TVA récemment ?', opts: [{l:'Oui, je suis large', v:'ok'}, {l:'Non, pas regardé', v:'no'}, {l:'Je dépasse peut-être', v:'risk'}] }
+                ]
+            },
+            {
+                id: 'urssaf',
+                name: 'URSSAF & Social',
+                questions: [
+                    { id: 'urssaf_pay', q: 'Êtes-vous à jour de vos cotisations sociales ?', opts: [{l:'Oui, tout est payé', v:'ok'}, {l:'J\'ai un retard', v:'late'}, {l:'Je ne sais pas', v:'unk'}] },
+                    { id: 'acre', q: 'Bénéficiez-vous de l\'ACRE (taux réduit) ?', opts: [{l:'Oui', v:'yes'}, {l:'Non / Fini', v:'no'}] }
+                ]
+            },
+            {
+                id: 'billing',
+                name: 'Facturation',
+                questions: [
+                    { id: 'fact_tool', q: 'Comment faites-vous vos factures ?', opts: [{l:'Logiciel conforme (Fiscor, Tiime...)', v:'tool'}, {l:'Excel / Word / Canva', v:'word'}] },
+                    { id: 'fact_num', q: 'Votre numérotation est-elle continue sans trous ?', opts: [{l:'Oui (F2024-01, 02...)', v:'yes'}, {l:'Non / Pas sûr', v:'no'}] }
+                ]
+            },
+            {
+                id: 'expenses',
+                name: 'Justificatifs & Achats',
+                questions: [
+                    { id: 'proofs', q: 'Gardez-vous un justificatif pour CHAQUE dépense pro ?', opts: [{l:'Oui, tout est scanné/classé', v:'yes'}, {l:'La plupart, mais il en manque', v:'some'}, {l:'Non, c\'est le bazar', v:'no'}] },
+                    { id: 'mix_exp', q: 'Avez-vous des dépenses mixtes (Pro/Perso) ?', opts: [{l:'Non, tout est séparé', v:'no'}, {l:'Oui (Loyer, Tel, Internet)', v:'yes'}] }
+                ]
+            },
+            {
+                id: 'intl',
+                name: 'International',
+                questions: [
+                    { id: 'sales_ue', q: 'Vendez-vous à des clients hors France ?', opts: [{l:'Non, 100% France', v:'no'}, {l:'Oui, UE ou Monde', v:'yes'}] },
+                    { id: 'tva_intra', q: 'Si vente UE, avez-vous le N° TVA Intracom du client ?', opts: [{l:'Oui (ou pas concerné)', v:'yes'}, {l:'Non / Je ne demande pas', v:'no'}] }
+                ]
+            }
+        ];
+
+        let curModIdx = 0;
+        let curQIdx = 0;
+        let answers = {};
+
+        // --- NAVIGATION ---
+        function startWizard() {
+            document.getElementById('view-intro').classList.add('hidden');
+            document.getElementById('view-wizard').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const mod = MODULES[curModIdx];
+            const q = mod.questions[curQIdx];
+            
+            // Progress Update
+            const totalQ = MODULES.reduce((acc, m) => acc + m.questions.length, 0);
+            const currentTotal = MODULES.slice(0, curModIdx).reduce((acc, m) => acc + m.questions.length, 0) + curQIdx + 1;
+            
+            document.getElementById('module-name').innerText = `Module ${curModIdx+1} : ${mod.name}`;
+            document.getElementById('q-count').innerText = `${currentTotal}/${totalQ}`;
+            document.getElementById('progress').style.width = ((currentTotal/totalQ)*100) + '%';
+
+            // Render HTML
+            let html = `
+                <div class="question-card fade-in">
+                    <div class="q-label">${q.q}</div>
+                    <div class="q-sub">Sélectionnez la meilleure réponse</div>
+                    <div class="response-grid">
+            `;
+            q.opts.forEach(opt => {
+                html += `
+                    <div class="response-btn" onclick="handleAnswer('${q.id}', '${opt.v}')">
+                        <div style="width:20px; height:20px; border:2px solid var(--border); border-radius:50%;"></div>
+                        ${opt.l}
+                    </div>
+                `;
+            });
+            html += `</div></div>`;
+            document.getElementById('question-area').innerHTML = html;
+        }
+
+        function handleAnswer(qId, val) {
+            answers[qId] = val;
+            
+            // Next Logic
+            const mod = MODULES[curModIdx];
+            if (curQIdx < mod.questions.length - 1) {
+                curQIdx++;
+                renderQuestion();
+            } else {
+                if (curModIdx < MODULES.length - 1) {
+                    curModIdx++;
+                    curQIdx = 0;
+                    renderQuestion();
+                } else {
+                    runAudit();
+                }
+            }
+        }
+
+        // --- ENGINE ---
+        function runAudit() {
+            document.getElementById('view-wizard').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+
+            const msgs = ["Analyse des risques fiscaux...", "Vérification de la conformité sociale...", "Génération du plan d'action..."];
+            let i = 0;
+            const interval = setInterval(() => { if(msgs[i]) document.getElementById('loader-msg').innerText = msgs[i]; i++; }, 800);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                generateReport();
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('view-report').classList.remove('hidden');
+            }, 2500);
+        }
+
+        function generateReport() {
+            let score = 100;
+            let risks = [];
+            let plan = [];
+            
+            // --- RULES ENGINE ---
+
+            // 1. FACTURATION (Word/Excel)
+            if (answers.fact_tool === 'word') {
+                score -= 15;
+                risks.push({ sev:'Majeur', title:'Outil de facturation non conforme', desc:'Word/Excel ne garantissent pas l\'inaltérabilité des données (Obligatoire). Risque de rejet de comptabilité.', fix:'Passer sur un logiciel certifié (Fiscor, Henrri...).' });
+                plan.push({ time:'30 jours', act:'Adopter un logiciel de facturation.' });
+            }
+
+            // 2. TVA SEUIL
+            if (answers.tva_regime === 'franchise' && (answers.ca_trend === 'grow' || answers.ca_trend === 'max') && answers.tva_seuil === 'no') {
+                score -= 20;
+                risks.push({ sev:'Critique', title:'Risque Dépassement Seuil TVA', desc:'Croissance forte sans surveillance des seuils. Si dépassé, la TVA est due dès le 1er jour du mois.', fix:'Calculer le CA cumulé immédiatement.' });
+                plan.push({ time:'30 jours', act:'Auditer le CA vs Seuils TVA.' });
+            }
+
+            // 3. INTRACOM
+            if (answers.sales_ue === 'yes' && answers.tva_intra === 'no') {
+                score -= 25;
+                risks.push({ sev:'Critique', title:'Défaut TVA Intracommunautaire', desc:'Vente en UE sans vérifier le N° TVA client = Redressement TVA garanti sur ces ventes.', fix:'Collecter les N° TVA de tous les clients UE.' });
+                plan.push({ time:'30 jours', act:'Récupérer N° TVA clients UE et faire DES.' });
+            }
+
+            // 4. JUSTIFICATIFS
+            if (answers.proofs === 'no' || answers.proofs === 'some') {
+                score -= 15;
+                risks.push({ sev:'Majeur', title:'Justificatifs manquants', desc:'Une dépense sans facture est rejetée fiscalement (IS + Charges sociales).', fix:'Scanner et classer tout systématiquement.' });
+                plan.push({ time:'60 jours', act:'Mettre en place un archivage Cloud.' });
+            }
+
+            // 5. URSSAF
+            if (answers.urssaf_pay === 'late') {
+                score -= 10;
+                risks.push({ sev:'Important', title:'Retard Cotisations Sociales', desc:'Pénalités de retard automatiques. Risque de majoration.', fix:'Demander un délai ou payer immédiatement.' });
+            }
+
+            // 6. NUMEROTATION
+            if (answers.fact_num === 'no') {
+                score -= 5;
+                risks.push({ sev:'Important', title:'Numérotation factures incorrecte', desc:'La série doit être chronologique et continue (pas de trous).', fix:'Corriger le process de numérotation.' });
+            }
+
+            // --- SCORING & RENDER ---
+            score = Math.max(0, score);
+            
+            // Sub-scores (Simplified logic for demo)
+            let scFiscal = 100; if(answers.tva_seuil==='no') scFiscal-=30; if(answers.sales_ue==='yes' && answers.tva_intra==='no') scFiscal-=40;
+            let scSocial = 100; if(answers.urssaf_pay==='late') scSocial-=40;
+            let scGestion = 100; if(answers.fact_tool==='word') scGestion-=30; if(answers.proofs!=='yes') scGestion-=30;
+
+            document.getElementById('final-score').innerText = score;
+            const circle = document.getElementById('score-circle');
+            if(score < 50) circle.style.borderColor = 'var(--critique)';
+            else if(score < 80) circle.style.borderColor = 'var(--warning)';
+            else circle.style.borderColor = 'var(--success)';
+
+            document.getElementById('sub-fiscal').innerText = Math.max(0, scFiscal) + '/100';
+            document.getElementById('sub-social').innerText = Math.max(0, scSocial) + '/100';
+            document.getElementById('sub-gestion').innerText = Math.max(0, scGestion) + '/100';
+
+            // Render Risks
+            const riskBody = document.getElementById('risk-rows');
+            if (risks.length === 0) {
+                riskBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--success);">Aucun risque majeur détecté. Félicitations !</td></tr>`;
+            } else {
+                riskBody.innerHTML = risks.map(r => `
+                    <tr>
+                        <td><span class="tag tag-${r.sev.toLowerCase()}">${r.sev}</span></td>
+                        <td><strong>${r.title}</strong><br><span style="color:var(--text-muted); font-size:0.85rem;">${r.desc}</span></td>
+                        <td>${r.fix}</td>
+                    </tr>
+                `).join('');
+            }
+
+            // Render Plan
+            const planDiv = document.getElementById('action-plan');
+            if (plan.length === 0) plan.push({time:'90 jours', act:'Maintenir la rigueur actuelle.'});
+            
+            planDiv.innerHTML = plan.map(p => `
+                <div class="action-item">
+                    <svg class="action-check icon-svg" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <div>
+                        <strong style="font-size:0.9rem; text-transform:uppercase; color:var(--primary);">${p.time}</strong>
+                        <div style="font-weight:600;">${p.act}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function downloadPDF() {
+            const el = document.getElementById('export-target');
+            const opt = {
+                margin: 10,
+                filename: 'Fiscor_Audit_Complet.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(el).save();
+        }
+    </script>
+</body>
+</html>
