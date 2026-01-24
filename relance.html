@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Relance & Recouvrement</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .editor-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+        .preview-col { flex: 1.3; min-width: 400px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1400px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Cards */
+        .section-card {
+            background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .section-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; justify-content: space-between;
+            align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        }
+
+        /* Forms */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .full-width { grid-column: 1 / -1; }
+        .inp-group { display: flex; flex-direction: column; gap: 6px; }
+        .inp-label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .inp-field {
+            width: 100%; background: var(--bg-subtle); border: 1px solid var(--border);
+            padding: 12px; border-radius: 8px; color: var(--text-main); font-size: 0.9rem;
+            font-family: inherit; transition: 0.2s;
+        }
+        .inp-field:focus { border-color: var(--accent); background: white; box-shadow: 0 0 0 3px var(--accent-light); }
+        textarea.inp-field { resize: vertical; min-height: 80px; }
+
+        /* Tone Selector */
+        .tone-selector { display: flex; gap: 8px; margin-top: 8px; }
+        .tone-btn {
+            flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg-subtle); cursor: pointer; text-align: center;
+            font-size: 0.85rem; font-weight: 600; transition: 0.2s; color: var(--text-secondary);
+        }
+        .tone-btn:hover { background: white; border-color: var(--accent); }
+        .tone-btn.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+
+        /* Actions */
+        .btn-action {
+            width: 100%; padding: 14px; background: var(--accent); color: white; border: none;
+            border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-action:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+        .tab-btn {
+            padding: 10px 20px; background: none; border: none; font-weight: 600;
+            color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent;
+            transition: 0.2s; font-size: 0.95rem;
+        }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        /* Message Card */
+        .msg-card {
+            background: white; border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; margin-bottom: 20px; position: relative; transition: 0.2s;
+        }
+        .msg-card:hover { border-color: var(--accent); box-shadow: var(--shadow-card); }
+        .msg-header { display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center; }
+        .msg-type { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; padding: 4px 8px; border-radius: 4px; background: var(--bg-subtle); color: var(--text-secondary); }
+        .msg-subject { font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin-bottom: 8px; display: block; }
+        .msg-body {
+            background: var(--bg-subtle); padding: 16px; border-radius: 8px; font-size: 0.9rem;
+            white-space: pre-line; color: var(--text-main); line-height: 1.5; font-family: monospace;
+        }
+        .copy-btn {
+            position: absolute; top: 16px; right: 16px; background: white; border: 1px solid var(--border);
+            padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            color: var(--accent); display: flex; align-items: center; gap: 6px; transition: 0.2s;
+        }
+        .copy-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* Timeline Plan */
+        .timeline { position: relative; padding-left: 24px; border-left: 2px solid var(--border); margin-left: 10px; }
+        .tl-item { margin-bottom: 24px; position: relative; }
+        .tl-dot {
+            position: absolute; left: -31px; top: 0; width: 16px; height: 16px; border-radius: 50%;
+            background: white; border: 3px solid var(--border); transition: 0.2s;
+        }
+        .tl-item.active .tl-dot { border-color: var(--accent); background: var(--accent-light); }
+        .tl-date { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
+        .tl-title { font-weight: 700; font-size: 1rem; color: var(--text-main); margin-bottom: 4px; }
+        .tl-desc { font-size: 0.9rem; color: var(--text-secondary); }
+
+        /* Checklist */
+        .cl-item { display: flex; gap: 12px; padding: 12px; border-bottom: 1px solid var(--bg-subtle); align-items: flex-start; }
+        .cl-item:last-child { border-bottom: none; }
+        .cl-check { margin-top: 4px; accent-color: var(--accent); cursor: pointer; width: 18px; height: 18px; }
+        .cl-txt { font-size: 0.9rem; color: var(--text-main); }
+
+        /* Alert Box */
+        .alert-box {
+            background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 12px;
+            border-radius: 8px; font-size: 0.9rem; display: flex; gap: 10px; align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* LOADER */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 900px) {
+            .workspace { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Analyse du retard & Génération des messages...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div> RELANCE</div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- LEFT: CONTEXT -->
+        <div class="editor-col">
+            <div class="section-card">
+                <div class="section-title">Contexte de l'Impayé</div>
+                
+                <div class="grid-2">
+                    <div class="inp-group">
+                        <label class="inp-label">Client (Nom)</label>
+                        <input class="inp-field" id="client-name" placeholder="Client SARL" oninput="updateUI()">
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Type Client</label>
+                        <select class="inp-field" id="client-type" onchange="updateUI()">
+                            <option value="b2b">Professionnel (B2B)</option>
+                            <option value="b2c">Particulier (B2C)</option>
+                        </select>
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">N° Facture</label>
+                        <input class="inp-field" id="inv-num" placeholder="F-2024-001" oninput="updateUI()">
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Montant TTC (€)</label>
+                        <input type="number" class="inp-field" id="inv-amount" placeholder="1200" oninput="updateUI()">
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Date Échéance</label>
+                        <input type="date" class="inp-field" id="due-date" onchange="calcDelay()">
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Retard (Jours)</label>
+                        <input type="number" class="inp-field" id="delay-days" placeholder="Calclulé auto" readonly style="background:#eee;">
+                    </div>
+                </div>
+
+                <div class="inp-group" style="margin-top:16px;">
+                    <label class="inp-label">Motif / Situation</label>
+                    <select class="inp-field" id="reason" onchange="updateUI()">
+                        <option value="forgot">Simple Oubli (Pas de réponse)</option>
+                        <option value="promise">Promesse de paiement non tenue</option>
+                        <option value="partial">Paiement partiel reçu</option>
+                        <option value="tech">Problème technique / IBAN</option>
+                        <option value="dispute">Contestation / Litige</option>
+                    </select>
+                </div>
+
+                <div class="inp-group" style="margin-top:16px;">
+                    <label class="inp-label">Ton souhaité</label>
+                    <div class="tone-selector">
+                        <div class="tone-btn active" onclick="setTone('cool')" id="btn-cool">Cool 🤝</div>
+                        <div class="tone-btn" onclick="setTone('pro')" id="btn-pro">Neutre 😐</div>
+                        <div class="tone-btn" onclick="setTone('firm')" id="btn-firm">Ferme 😠</div>
+                        <div class="tone-btn" onclick="setTone('legal')" id="btn-legal">Juridique ⚖️</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:24px;">
+                    <button class="btn-action" onclick="generateRelance()">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Générer les Messages
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">Checklist Preuves</div>
+                <div id="checklist-area">
+                    <div class="cl-item"><input type="checkbox" class="cl-check"> <span class="cl-txt">Copie de la facture signée / Devis accepté</span></div>
+                    <div class="cl-item"><input type="checkbox" class="cl-check"> <span class="cl-txt">Preuve de livraison / réalisation (PV réception)</span></div>
+                    <div class="cl-item"><input type="checkbox" class="cl-check"> <span class="cl-txt">Historique des emails envoyés</span></div>
+                    <div class="cl-item"><input type="checkbox" class="cl-check"> <span class="cl-txt">CGV signées (Pénalités retard)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: OUTPUT -->
+        <div class="preview-col">
+            
+            <!-- ALERTS -->
+            <div id="risk-alert" class="alert-box" style="display:none;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <span id="risk-msg">Attention : Retard > 30 jours. Risque élevé.</span>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('messages')">💬 Messages (Copier/Coller)</button>
+                <button class="tab-btn" onclick="switchTab('plan')">📅 Plan de Bataille</button>
+                <button class="tab-btn" onclick="switchTab('script')">📞 Script Téléphonique</button>
+            </div>
+
+            <!-- MESSAGES TAB -->
+            <div id="tab-messages">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- PLAN TAB -->
+            <div id="tab-plan" style="display:none;">
+                <div class="section-card">
+                    <div class="section-title">Timeline Recommandée</div>
+                    <div class="timeline" id="timeline-area">
+                        <!-- Injected -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCRIPT TAB -->
+            <div id="tab-script" style="display:none;">
+                <div class="msg-card">
+                    <div class="msg-header">
+                        <span class="msg-type">APPEL TÉLÉPHONIQUE</span>
+                        <button class="copy-btn" onclick="copyToClip('script-text')">Copier</button>
+                    </div>
+                    <div class="msg-body" id="script-text">
+                        Générez le contenu pour voir le script.
+                    </div>
+                </div>
+                <div style="background:#FFFBEB; color:#92400E; padding:12px; border-radius:8px; font-size:0.9rem;">
+                    💡 <strong>Conseil :</strong> Souriez en parlant, ça s'entend. Restez factuel : "Je vois que la facture est échue, avez-vous eu le temps de la traiter ?"
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // STATE
+        let data = {
+            client: '', type: 'b2b', invNum: '', amount: '', delay: 0, tone: 'cool', reason: 'forgot'
+        };
+
+        const TEMPLATES = {
+            cool: {
+                subject: "Facture {INV} : Petit oubli ?",
+                body: "Bonjour {CLIENT},\n\nJ'espère que vous allez bien.\n\nSauf erreur de ma part, je n'ai pas encore reçu le règlement de la facture {INV} d'un montant de {AMOUNT}€, échue le {DATE}.\n\nS'agit-il d'un simple oubli ?\n\nVous trouverez la facture en pièce jointe ainsi que mon RIB.\n\nBien à vous,",
+                sms: "Bonjour {CLIENT}, petit rappel pour la facture {INV} ({AMOUNT}€) qui semble être en attente. Merci de faire le nécessaire ! Cdlt."
+            },
+            pro: {
+                subject: "Rappel de paiement : Facture {INV}",
+                body: "Bonjour {CLIENT},\n\nJe vous informe que la facture {INV} de {AMOUNT}€ est arrivée à échéance le {DATE}.\n\nJe vous remercie de procéder à son règlement dans les meilleurs délais.\n\nSi le virement a déjà été effectué, merci de ne pas tenir compte de ce message.\n\nCordialement,",
+                sms: "Bonjour {CLIENT}, la facture {INV} de {AMOUNT}€ est échue. Merci de procéder au règlement dès que possible. Cdlt."
+            },
+            firm: {
+                subject: "Retard de paiement : Facture {INV} - 2ème Relance",
+                body: "Madame, Monsieur,\n\nMalgré ma précédente relance, la facture {INV} du {DATE} reste impayée à ce jour.\n\nLe montant dû est de {AMOUNT}€.\n\nJe vous demande de régulariser cette situation immédiatement pour éviter toute procédure de recouvrement{PENALTIES}.\n\nDans l'attente de votre virement,\n\nCordialement,",
+                sms: "URGENT {CLIENT} : Facture {INV} toujours impayée. Merci de régulariser immédiatement pour éviter les pénalités. Cdlt."
+            },
+            legal: {
+                subject: "MISE EN DEMEURE DE PAYER : Facture {INV}",
+                body: "LETTRE RECOMMANDÉE AVEC AR\n\nMadame, Monsieur,\n\nSauf erreur ou omission de notre part, nous constatons que la facture n°{INV} d'un montant de {AMOUNT}€ demeure impayée à ce jour, malgré nos multiples relances.\n\nPar la présente, nous vous mettons en demeure de procéder au règlement de la somme totale sous 8 jours.\n\nÀ défaut de paiement dans ce délai, nous transmettrons le dossier à notre service contentieux pour recouvrement judiciaire, majoré des intérêts de retard et de l'indemnité forfaitaire de 40€.\n\nVeuillez agréer, Madame, Monsieur, l'expression de nos salutations distinguées.",
+                sms: "DERNIER AVIS {CLIENT} : Sans paiement de la facture {INV} sous 48h, le dossier part au contentieux. Cdlt."
+            }
+        };
+
+        const SCRIPTS = {
+            cool: "Bonjour [Nom Interlocuteur], c'est [Votre Nom]. Je vous appelle simplement pour savoir si vous aviez bien reçu ma facture {INV} ?\n\n[Si Oui] : Super, comme l'échéance est passée, pouvez-vous me dire quand le virement est prévu ?\n\n[Si Non] : Pas de souci, je vous la renvoie tout de suite par mail. Pouvez-vous me confirmer votre adresse ?",
+            firm: "Bonjour [Nom], je vous appelle concernant la facture {INV} de {AMOUNT}€ qui est en retard de {DELAY} jours. Nous avions convenu d'un paiement le [Date].\n\nQu'est-ce qui bloque le paiement aujourd'hui ?\n\nJe dois clôturer ma comptabilité, j'ai besoin d'une date de virement ferme avant demain soir."
+        };
+
+        // INIT
+        function init() {
+            // Set default date to -10 days to show delay
+            const d = new Date();
+            d.setDate(d.getDate() - 10);
+            document.getElementById('due-date').value = d.toISOString().split('T')[0];
+            
+            calcDelay();
+            updateUI();
+        }
+
+        // LOGIC
+        function calcDelay() {
+            const due = new Date(document.getElementById('due-date').value);
+            const now = new Date();
+            const diffTime = Math.abs(now - due);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            if(now < due) data.delay = 0;
+            else data.delay = diffDays;
+            
+            document.getElementById('delay-days').value = data.delay;
+            
+            // Auto-set tone based on delay
+            if(data.delay > 30) setTone('legal');
+            else if(data.delay > 15) setTone('firm');
+            else if(data.delay > 7) setTone('pro');
+            else setTone('cool');
+        }
+
+        function setTone(tone) {
+            data.tone = tone;
+            document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-'+tone).classList.add('active');
+        }
+
+        function updateUI() {
+            // Collect Data
+            data.client = document.getElementById('client-name').value || '[NOM CLIENT]';
+            data.type = document.getElementById('client-type').value;
+            data.invNum = document.getElementById('inv-num').value || '[N° FACTURE]';
+            data.amount = document.getElementById('inv-amount').value || '[MONTANT]';
+            data.reason = document.getElementById('reason').value;
+            
+            // Alerts
+            const alertBox = document.getElementById('risk-alert');
+            const alertMsg = document.getElementById('risk-msg');
+            
+            if(data.delay > 30) {
+                alertBox.style.display = 'flex';
+                alertMsg.innerText = `Retard critique (${data.delay} jours). Passez en mode Juridique.`;
+                alertBox.style.background = '#FEF2F2'; alertBox.style.color = '#991B1B';
+            } else if(data.reason === 'dispute') {
+                alertBox.style.display = 'flex';
+                alertMsg.innerText = "Litige déclaré : Stoppez les relances auto. Appelez pour négocier.";
+                alertBox.style.background = '#FFFBEB'; alertBox.style.color = '#92400E';
+            } else {
+                alertBox.style.display = 'none';
+            }
+        }
+
+        function generateRelance() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+
+            setTimeout(() => {
+                loader.style.display = 'none';
+                renderMessages();
+                renderPlan();
+                renderScript();
+            }, 1000);
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('tab-messages');
+            const tpl = TEMPLATES[data.tone];
+            const dateStr = new Date(document.getElementById('due-date').value).toLocaleDateString('fr-FR');
+            
+            // Text Replacement
+            let body = tpl.body
+                .replace(/{CLIENT}/g, data.client)
+                .replace(/{INV}/g, data.invNum)
+                .replace(/{AMOUNT}/g, data.amount)
+                .replace(/{DATE}/g, dateStr);
+            
+            let subject = tpl.subject
+                .replace(/{INV}/g, data.invNum);
+
+            let sms = tpl.sms
+                .replace(/{CLIENT}/g, data.client)
+                .replace(/{INV}/g, data.invNum)
+                .replace(/{AMOUNT}/g, data.amount);
+
+            // B2B specificities
+            if(data.type === 'b2b' && data.tone === 'firm') {
+                body = body.replace(/{PENALTIES}/g, " ainsi que l'application des pénalités de retard et de l'indemnité forfaitaire de 40€");
+            } else {
+                body = body.replace(/{PENALTIES}/g, "");
+            }
+
+            container.innerHTML = `
+                <div class="msg-card">
+                    <div class="msg-header">
+                        <span class="msg-type">EMAIL</span>
+                        <button class="copy-btn" onclick="copyToClip('email-body')">Copier</button>
+                    </div>
+                    <span class="msg-subject">Objet : ${subject}</span>
+                    <div class="msg-body" id="email-body">${body}</div>
+                </div>
+
+                <div class="msg-card">
+                    <div class="msg-header">
+                        <span class="msg-type">SMS / WHATSAPP</span>
+                        <button class="copy-btn" onclick="copyToClip('sms-body')">Copier</button>
+                    </div>
+                    <div class="msg-body" id="sms-body">${sms}</div>
+                </div>
+            `;
+        }
+
+        function renderPlan() {
+            const container = document.getElementById('timeline-area');
+            const steps = [
+                { d: 3, t: "Relance Douce", desc: "Email convivial pour vérifier la bonne réception.", active: data.delay > 3 },
+                { d: 10, t: "Rappel Formel", desc: "Email plus structuré rappelant l'échéance passée.", active: data.delay > 10 },
+                { d: 20, t: "Appel Téléphonique", desc: "Contact direct pour débloquer la situation.", active: data.delay > 20 },
+                { d: 30, t: "Mise en demeure", desc: "Lettre recommandée (LRAR) avant contentieux.", active: data.delay > 30 }
+            ];
+
+            container.innerHTML = steps.map(s => `
+                <div class="tl-item ${s.active ? 'active' : ''}">
+                    <div class="tl-dot"></div>
+                    <div class="tl-date">J+${s.d}</div>
+                    <div class="tl-title">${s.t}</div>
+                    <div class="tl-desc">${s.desc}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderScript() {
+            let scriptKey = (data.tone === 'firm' || data.tone === 'legal') ? 'firm' : 'cool';
+            let script = SCRIPTS[scriptKey]
+                .replace(/{INV}/g, data.invNum)
+                .replace(/{AMOUNT}/g, data.amount)
+                .replace(/{DELAY}/g, data.delay);
+            
+            document.getElementById('script-text').innerText = script;
+        }
+
+        // UTILS
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('tab-messages').style.display = 'none';
+            document.getElementById('tab-plan').style.display = 'none';
+            document.getElementById('tab-script').style.display = 'none';
+            
+            document.getElementById('tab-'+tab).style.display = 'block';
+        }
+
+        function copyToClip(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copié dans le presse-papier !");
+            });
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
