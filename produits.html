@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Catalogue Produits & Services</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1400px; margin: 0 auto 30px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Config Bar (TVA Switch) */
+        .config-bar {
+            max-width: 1400px; margin: 0 auto 30px auto; width: 100%;
+            background: var(--accent-light); border: 1px solid var(--accent);
+            padding: 16px 24px; border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+        }
+        .config-label { font-weight: 700; color: var(--accent-dark); font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        
+        .toggle-switch {
+            position: relative; display: inline-block; width: 50px; height: 26px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .editor-col { flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 24px; }
+        .list-col { flex: 2; min-width: 450px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Card Styles */
+        .card {
+            background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+
+        /* Form Inputs */
+        .inp-group { margin-bottom: 16px; }
+        .inp-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+        .inp-field {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg-subtle); color: var(--text-main); font-size: 0.95rem; transition: 0.2s;
+        }
+        .inp-field:focus { border-color: var(--accent); background: white; outline: none; }
+        
+        .radio-pills { display: flex; gap: 10px; }
+        .radio-pill-opt { display: none; }
+        .radio-pill-lbl {
+            padding: 8px 16px; border: 1px solid var(--border); border-radius: 100px;
+            font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-secondary);
+            background: white; transition: 0.2s;
+        }
+        .radio-pill-opt:checked + .radio-pill-lbl {
+            background: var(--accent); color: white; border-color: var(--accent);
+        }
+
+        /* Product List Styles */
+        .prod-card {
+            background: white; border: 1px solid var(--border); border-radius: 12px;
+            padding: 16px; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .prod-card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-card); }
+        .prod-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+        }
+        .type-service::before { background: #3B82F6; } /* Blue for Service */
+        .type-product::before { background: #10B981; } /* Green for Product */
+
+        .prod-info { flex: 1; margin-left: 12px; }
+        .prod-name { font-weight: 700; color: var(--text-main); font-size: 1rem; }
+        .prod-desc { font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; }
+        
+        .prod-price-block { text-align: right; min-width: 100px; }
+        .prod-price { font-weight: 800; font-size: 1.1rem; color: var(--text-main); }
+        .prod-vat { font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; }
+
+        .prod-actions { margin-left: 20px; display: flex; gap: 8px; }
+        .icon-btn {
+            background: var(--bg-subtle); border: 1px solid var(--border); padding: 8px;
+            border-radius: 8px; cursor: pointer; color: var(--text-secondary); transition: 0.2s;
+        }
+        .icon-btn:hover { color: var(--danger); border-color: var(--danger); background: #FEF2F2; }
+
+        /* Template Buttons */
+        .template-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .tpl-btn {
+            padding: 10px; border: 1px dashed var(--accent); border-radius: 8px; background: var(--accent-light);
+            color: var(--accent); font-weight: 600; font-size: 0.8rem; cursor: pointer; text-align: center;
+            transition: 0.2s;
+        }
+        .tpl-btn:hover { background: var(--accent); color: white; }
+
+        /* Action Buttons */
+        .btn-main {
+            width: 100%; padding: 14px; background: var(--accent); color: white; border: none;
+            border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-main:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+        .btn-export {
+            padding: 10px 20px; background: white; border: 1px solid var(--border);
+            border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+            display: flex; align-items: center; gap: 8px; color: var(--text-main); transition: 0.2s;
+        }
+        .btn-export:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PDF Printable Area (Hidden by default) */
+        #printable-catalog { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Export du Catalogue en cours...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div> CATALOGUE</div>
+    </div>
+
+    <div class="config-bar">
+        <div class="config-label">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            Mode TVA (Franchise vs Assujetti)
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:0.9rem; font-weight:600; color:var(--text-secondary);">Franchise (Micro)</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="tva-toggle" onchange="toggleVAT()">
+                <span class="slider"></span>
+            </label>
+            <span style="font-size:0.9rem; font-weight:600; color:var(--accent);">Assujetti (Réel)</span>
+        </div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- EDITOR -->
+        <div class="editor-col">
+            <div class="card">
+                <div class="card-title">Ajouter un élément</div>
+                
+                <div class="inp-group">
+                    <span class="inp-label">Type</span>
+                    <div class="radio-pills">
+                        <input type="radio" name="p-type" id="type-srv" value="service" class="radio-pill-opt" checked>
+                        <label for="type-srv" class="radio-pill-lbl">Prestation</label>
+                        
+                        <input type="radio" name="p-type" id="type-prod" value="product" class="radio-pill-opt">
+                        <label for="type-prod" class="radio-pill-lbl">Produit</label>
+                    </div>
+                </div>
+
+                <div class="inp-group">
+                    <label class="inp-label">Nom de l'offre</label>
+                    <input type="text" id="p-name" class="inp-field" placeholder="Ex: Création Logo, Pack 10h...">
+                </div>
+
+                <div class="inp-group">
+                    <label class="inp-label">Description (Optionnel)</label>
+                    <input type="text" id="p-desc" class="inp-field" placeholder="Détails pour le devis...">
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                    <div class="inp-group">
+                        <label class="inp-label">Prix Unitaire (€)</label>
+                        <input type="number" id="p-price" class="inp-field" placeholder="0.00">
+                    </div>
+                    <div class="inp-group">
+                        <label class="inp-label">Unité</label>
+                        <select id="p-unit" class="inp-field">
+                            <option value="pièce">/ Pièce</option>
+                            <option value="heure">/ Heure</option>
+                            <option value="jour">/ Jour</option>
+                            <option value="forfait">/ Forfait</option>
+                            <option value="mois">/ Mois</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="inp-group" id="vat-group" style="display:none;">
+                    <label class="inp-label">Taux de TVA</label>
+                    <select id="p-vat" class="inp-field">
+                        <option value="20">20% (Standard)</option>
+                        <option value="10">10% (Intermédiaire)</option>
+                        <option value="5.5">5.5% (Réduit)</option>
+                        <option value="0">0% (Export/Exo)</option>
+                    </select>
+                </div>
+
+                <button class="btn-main" onclick="addItem()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Ajouter au catalogue
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Templates Rapides</div>
+                <div class="template-grid">
+                    <div class="tpl-btn" onclick="loadTemplate('freelance')">Freelance<br>Service</div>
+                    <div class="tpl-btn" onclick="loadTemplate('ecom')">E-shop<br>Produit</div>
+                    <div class="tpl-btn" onclick="loadTemplate('agence')">Agence<br>Retainer</div>
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-secondary); text-align:center;">
+                    Attention : Remplace la liste actuelle.
+                </div>
+            </div>
+        </div>
+
+        <!-- LIST -->
+        <div class="list-col">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-size:1.2rem; font-weight:800;">Mon Catalogue (<span id="count">0</span>)</h3>
+                <button class="btn-export" onclick="exportCatalog()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Télécharger PDF
+                </button>
+            </div>
+
+            <div id="catalog-list">
+                <!-- Injected Items -->
+            </div>
+
+            <div id="empty-state" style="text-align:center; padding:60px; color:var(--text-secondary); border: 2px dashed var(--border); border-radius:16px;">
+                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px; color:var(--border);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                <p>Votre catalogue est vide.<br>Ajoutez votre premier produit ou service.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Hidden Area for PDF Generation -->
+    <div id="printable-catalog" style="padding:40px; font-family:'Arial',sans-serif;">
+        <h1 style="text-align:center; color:#7C3AED; margin-bottom:10px;">Grille Tarifaire</h1>
+        <p style="text-align:center; color:#64748B; margin-bottom:40px;" id="pdf-date">Généré le ...</p>
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background:#F3F4F6; text-align:left;">
+                    <th style="padding:12px; border-bottom:2px solid #ddd;">Type</th>
+                    <th style="padding:12px; border-bottom:2px solid #ddd;">Nom</th>
+                    <th style="padding:12px; border-bottom:2px solid #ddd;">Description</th>
+                    <th style="padding:12px; border-bottom:2px solid #ddd; text-align:right;">Prix Unitaire</th>
+                    <th style="padding:12px; border-bottom:2px solid #ddd; text-align:right;" id="pdf-th-vat">TVA</th>
+                </tr>
+            </thead>
+            <tbody id="pdf-rows"></tbody>
+        </table>
+        <div style="margin-top:30px; font-size:0.8rem; color:#888; text-align:center;" id="pdf-legal">
+            <!-- Mention added via JS -->
+        </div>
+    </div>
+
+    <script>
+        // STATE
+        let items = [];
+        let isVatEnabled = false; // Default Franchise
+
+        // INIT
+        function init() {
+            const saved = localStorage.getItem('fiscor_catalog');
+            if(saved) items = JSON.parse(saved);
+            
+            // Check VAT pref if saved, else default false
+            const savedVat = localStorage.getItem('fiscor_vat_mode');
+            if(savedVat === 'true') {
+                isVatEnabled = true;
+                document.getElementById('tva-toggle').checked = true;
+            }
+            
+            toggleVAT(false); // Update UI without saving again
+            render();
+        }
+
+        // TOGGLE VAT
+        function toggleVAT(save = true) {
+            isVatEnabled = document.getElementById('tva-toggle').checked;
+            const vatGroup = document.getElementById('vat-group');
+            
+            if(isVatEnabled) {
+                vatGroup.style.display = 'block';
+            } else {
+                vatGroup.style.display = 'none';
+            }
+
+            if(save) localStorage.setItem('fiscor_vat_mode', isVatEnabled);
+            render(); // Re-render list to show/hide VAT info
+        }
+
+        // RENDER LIST
+        function render() {
+            const list = document.getElementById('catalog-list');
+            const empty = document.getElementById('empty-state');
+            const count = document.getElementById('count');
+            
+            list.innerHTML = '';
+            count.innerText = items.length;
+
+            if(items.length === 0) {
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            items.forEach((item, idx) => {
+                const typeClass = item.type === 'service' ? 'type-service' : 'type-product';
+                const typeLabel = item.type === 'service' ? 'Service' : 'Produit';
+                
+                let priceDisplay = `${parseFloat(item.price).toFixed(2)}€ <span style="font-size:0.8rem; font-weight:400;">HT</span>`;
+                let vatDisplay = '';
+
+                if(isVatEnabled) {
+                    const vatRate = parseFloat(item.vat || 20);
+                    const ttc = item.price * (1 + vatRate/100);
+                    vatDisplay = `+ ${vatRate}% TVA = ${ttc.toFixed(2)}€ TTC`;
+                } else {
+                    priceDisplay = `${parseFloat(item.price).toFixed(2)}€ <span style="font-size:0.8rem; font-weight:400;">Net</span>`;
+                    vatDisplay = 'Franchise TVA';
+                }
+
+                const html = `
+                    <div class="prod-card ${typeClass}">
+                        <div class="prod-info">
+                            <div class="prod-name">${item.name} <span style="font-size:0.7rem; font-weight:400; color:var(--text-secondary); background:var(--bg-subtle); padding:2px 6px; border-radius:4px; margin-left:8px;">${typeLabel}</span></div>
+                            <div class="prod-desc">${item.desc || 'Aucune description'}</div>
+                        </div>
+                        <div class="prod-price-block">
+                            <div class="prod-price">${priceDisplay}</div>
+                            <div class="prod-vat">${vatDisplay}</div>
+                            <div style="font-size:0.75rem; color:var(--text-secondary);">/ ${item.unit}</div>
+                        </div>
+                        <div class="prod-actions">
+                            <button class="icon-btn" onclick="deleteItem(${idx})">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                list.insertAdjacentHTML('beforeend', html);
+            });
+
+            localStorage.setItem('fiscor_catalog', JSON.stringify(items));
+        }
+
+        // ADD ITEM
+        function addItem() {
+            const name = document.getElementById('p-name').value;
+            const price = parseFloat(document.getElementById('p-price').value);
+            
+            if(!name || !price) {
+                alert("Nom et Prix sont obligatoires.");
+                return;
+            }
+
+            const newItem = {
+                id: Date.now(),
+                type: document.querySelector('input[name="p-type"]:checked').value,
+                name: name,
+                desc: document.getElementById('p-desc').value,
+                price: price,
+                unit: document.getElementById('p-unit').value,
+                vat: document.getElementById('p-vat').value
+            };
+
+            items.unshift(newItem);
+            render();
+            
+            // Clear form
+            document.getElementById('p-name').value = '';
+            document.getElementById('p-desc').value = '';
+            document.getElementById('p-price').value = '';
+        }
+
+        // DELETE
+        function deleteItem(idx) {
+            if(confirm("Supprimer cet élément ?")) {
+                items.splice(idx, 1);
+                render();
+            }
+        }
+
+        // TEMPLATES
+        function loadTemplate(type) {
+            if(!confirm("Ceci va remplacer votre liste actuelle. Continuer ?")) return;
+            
+            let tplItems = [];
+            
+            if(type === 'freelance') {
+                tplItems = [
+                    { type:'service', name:'TJM Développement', desc:'Journée de développement web', price:450, unit:'jour', vat:'20' },
+                    { type:'service', name:'Audit SEO', desc:'Analyse complète et rapport', price:900, unit:'forfait', vat:'20' },
+                    { type:'service', name:'Maintenance Mensuelle', desc:'Mises à jour et sécurité', price:150, unit:'mois', vat:'20' }
+                ];
+            } else if(type === 'ecom') {
+                tplItems = [
+                    { type:'product', name:'Produit A - Standard', desc:'Modèle de base, coloris unique', price:29.90, unit:'pièce', vat:'20' },
+                    { type:'product', name:'Produit B - Premium', desc:'Finition luxe', price:59.90, unit:'pièce', vat:'20' },
+                    { type:'service', name:'Livraison Express', desc:'Chronopost 24h', price:12.50, unit:'forfait', vat:'20' }
+                ];
+            } else if(type === 'agence') {
+                tplItems = [
+                    { type:'service', name:'Pack Landing Page', desc:'Design + Intégration + Copywriting', price:2500, unit:'forfait', vat:'20' },
+                    { type:'service', name:'Gestion Campagne Ads', desc:'Setup et optimisation mensuelle', price:500, unit:'mois', vat:'20' },
+                    { type:'service', name:'Création Logo', desc:'3 propositions + déclinaisons', price:800, unit:'forfait', vat:'20' }
+                ];
+            }
+
+            items = tplItems;
+            render();
+        }
+
+        // EXPORT
+        function exportCatalog() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+
+            // Prepare Hidden Table
+            const tbody = document.getElementById('pdf-rows');
+            const thVat = document.getElementById('pdf-th-vat');
+            const legal = document.getElementById('pdf-legal');
+            
+            tbody.innerHTML = '';
+            document.getElementById('pdf-date').innerText = "Date : " + new Date().toLocaleDateString('fr-FR');
+
+            if(isVatEnabled) {
+                thVat.style.display = 'table-cell';
+                legal.innerText = "Les prix sont affichés HT. TVA applicable selon taux en vigueur.";
+            } else {
+                thVat.style.display = 'none';
+                legal.innerText = "TVA non applicable, art. 293 B du CGI.";
+            }
+
+            items.forEach(item => {
+                let vatCell = '';
+                if(isVatEnabled) vatCell = `<td style="padding:12px; border-bottom:1px solid #eee; text-align:right;">${item.vat}%</td>`;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="padding:12px; border-bottom:1px solid #eee;">${item.type === 'service' ? 'Svc' : 'Prod'}</td>
+                        <td style="padding:12px; border-bottom:1px solid #eee;"><strong>${item.name}</strong></td>
+                        <td style="padding:12px; border-bottom:1px solid #eee; color:#666;">${item.desc || '-'}</td>
+                        <td style="padding:12px; border-bottom:1px solid #eee; text-align:right;">${item.price.toFixed(2)}€ / ${item.unit}</td>
+                        ${vatCell}
+                    </tr>
+                `;
+            });
+
+            setTimeout(() => {
+                const element = document.getElementById('printable-catalog');
+                element.style.display = 'block'; // Show briefly for capture
+                
+                const opt = {
+                    margin: 10,
+                    filename: 'Fiscor_Catalogue.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    element.style.display = 'none';
+                    loader.style.display = 'none';
+                });
+            }, 1000);
+        }
+
+        // RUN
+        init();
+
+    </script>
+</body>
+</html>
