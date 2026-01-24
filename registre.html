@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Registre des Recettes</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* HEADER */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1400px; margin: 0 auto 30px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* KPI CARDS */
+        .kpi-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;
+            max-width: 1400px; margin: 0 auto 30px auto; width: 100%;
+        }
+        .kpi-card {
+            background: white; border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 24px; box-shadow: var(--shadow-card); display: flex; flex-direction: column;
+        }
+        .kpi-label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; }
+        .kpi-value { font-size: 2rem; font-weight: 800; color: var(--text-main); }
+        .kpi-sub { font-size: 0.85rem; margin-top: 4px; font-weight: 500; }
+        
+        .kpi-success .kpi-value { color: var(--success); }
+        .kpi-warning .kpi-value { color: var(--warning); }
+        .kpi-danger .kpi-value { color: var(--danger); }
+
+        /* MAIN CONTAINER */
+        .main-container {
+            max-width: 1400px; margin: 0 auto; width: 100%;
+            background: white; border: 1px solid var(--border); border-radius: var(--radius);
+            box-shadow: var(--shadow-card); overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        /* TOOLBAR */
+        .toolbar {
+            padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: var(--bg-subtle);
+        }
+        .toolbar-group { display: flex; gap: 10px; }
+        
+        .btn {
+            padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+            border: 1px solid var(--border); background: white; color: var(--text-main);
+            display: flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+        .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+        .btn-primary:hover { background: var(--accent-dark); color: white; border-color: var(--accent-dark); }
+
+        /* TABLE */
+        .table-wrapper { overflow-x: auto; width: 100%; }
+        .reg-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        
+        .reg-table th {
+            text-align: left; padding: 16px; background: white; border-bottom: 2px solid var(--border);
+            font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700;
+            white-space: nowrap;
+        }
+        .reg-table td {
+            padding: 12px 16px; border-bottom: 1px solid var(--border);
+            font-size: 0.9rem; color: var(--text-main);
+        }
+        .reg-table tr:hover td { background: var(--bg-subtle); }
+
+        /* INPUTS IN TABLE */
+        .t-input {
+            width: 100%; border: 1px solid transparent; background: transparent; padding: 6px;
+            border-radius: 4px; font-family: inherit; font-size: 0.9rem; color: inherit;
+        }
+        .t-input:hover { border-color: var(--border); background: white; }
+        .t-input:focus { border-color: var(--accent); background: white; outline: none; }
+        .t-date { width: 130px; }
+        .t-money { text-align: right; font-weight: 600; width: 100px; }
+
+        /* STATUS BADGES SELECT */
+        .status-select {
+            padding: 6px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 700;
+            border: none; appearance: none; cursor: pointer; text-align: center; text-transform: uppercase;
+            width: 100%;
+        }
+        .st-paid { background: #DCFCE7; color: #166534; }
+        .st-wait { background: #FEF3C7; color: #92400E; }
+        .st-late { background: #FEE2E2; color: #991B1B; }
+
+        .action-btn {
+            background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px;
+            border-radius: 4px; transition: 0.2s;
+        }
+        .action-btn:hover { color: var(--danger); background: #FEE2E2; }
+
+        /* LOADER */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+
+        @media print {
+            .no-print { display: none !important; }
+            .main-container { border: none; box-shadow: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Export du Registre en cours...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg></div> REGISTRE</div>
+    </div>
+
+    <div class="kpi-row no-print">
+        <div class="kpi-card kpi-success">
+            <span class="kpi-label">Total Encaissé (Année)</span>
+            <div class="kpi-value" id="kpi-paid">0,00 €</div>
+            <div class="kpi-sub">Recettes réelles</div>
+        </div>
+        <div class="kpi-card kpi-warning">
+            <span class="kpi-label">En Attente (À venir)</span>
+            <div class="kpi-value" id="kpi-wait">0,00 €</div>
+            <div class="kpi-sub">Factures émises non échues</div>
+        </div>
+        <div class="kpi-card kpi-danger">
+            <span class="kpi-label">En Retard (Impayés)</span>
+            <div class="kpi-value" id="kpi-late">0,00 €</div>
+            <div class="kpi-sub">Actions de relance requises</div>
+        </div>
+    </div>
+
+    <div class="main-container" id="printable-area">
+        <div class="toolbar no-print">
+            <div class="toolbar-group">
+                <button class="btn btn-primary" onclick="addRow()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Ajouter une ligne
+                </button>
+                <button class="btn" onclick="resetData()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                    Effacer tout
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <button class="btn" onclick="exportCSV()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                    CSV (Excel)
+                </button>
+                <button class="btn" onclick="exportPDF()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    PDF (Officiel)
+                </button>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="reg-table" id="reg-table">
+                <thead>
+                    <tr>
+                        <th width="12%">Date Fact.</th>
+                        <th width="10%">N° Pièce</th>
+                        <th width="20%">Client</th>
+                        <th width="20%">Libellé / Objet</th>
+                        <th width="10%" style="text-align:right;">Montant €</th>
+                        <th width="10%">Statut</th>
+                        <th width="12%">Date Enc.</th>
+                        <th width="6%" class="no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="reg-body">
+                    <!-- JS Generated -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="padding:20px; text-align:center; color:var(--text-secondary); font-size:0.8rem; border-top:1px solid var(--border);">
+            Registre des recettes - Fiscor App - Conforme aux obligations micro-entrepreneur.
+        </div>
+    </div>
+
+    <script>
+        // DATA
+        let entries = [
+            { id: 1, date: '2024-01-10', num: 'F-2024-001', client: 'Agence Alpha', desc: 'Prestation Web', amount: 1200, status: 'paid', payDate: '2024-01-15' },
+            { id: 2, date: '2024-01-20', num: 'F-2024-002', client: 'Studio Beta', desc: 'Consulting SEO', amount: 850, status: 'wait', payDate: '' },
+            { id: 3, date: '2024-01-05', num: 'F-2024-003', client: 'Client Gamma', desc: 'Logo Design', amount: 400, status: 'late', payDate: '' }
+        ];
+
+        // INIT
+        function init() {
+            const saved = localStorage.getItem('fiscor_registre');
+            if(saved) entries = JSON.parse(saved);
+            render();
+        }
+
+        // RENDER
+        function render() {
+            const tbody = document.getElementById('reg-body');
+            tbody.innerHTML = '';
+
+            let totalPaid = 0;
+            let totalWait = 0;
+            let totalLate = 0;
+
+            entries.forEach((row, index) => {
+                // Calc stats
+                if(row.status === 'paid') totalPaid += parseFloat(row.amount) || 0;
+                else if(row.status === 'wait') totalWait += parseFloat(row.amount) || 0;
+                else if(row.status === 'late') totalLate += parseFloat(row.amount) || 0;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="date" class="t-input t-date" value="${row.date}" onchange="updateRow(${index}, 'date', this.value)"></td>
+                    <td><input type="text" class="t-input" value="${row.num}" onchange="updateRow(${index}, 'num', this.value)"></td>
+                    <td><input type="text" class="t-input" value="${row.client}" onchange="updateRow(${index}, 'client', this.value)"></td>
+                    <td><input type="text" class="t-input" value="${row.desc}" onchange="updateRow(${index}, 'desc', this.value)"></td>
+                    <td><input type="number" class="t-input t-money" value="${row.amount}" onchange="updateRow(${index}, 'amount', this.value)"></td>
+                    <td>
+                        <select class="status-select st-${row.status}" onchange="updateStatus(${index}, this)">
+                            <option value="paid" ${row.status==='paid'?'selected':''}>Encaissé</option>
+                            <option value="wait" ${row.status==='wait'?'selected':''}>En attente</option>
+                            <option value="late" ${row.status==='late'?'selected':''}>En retard</option>
+                        </select>
+                    </td>
+                    <td><input type="date" class="t-input t-date" value="${row.payDate}" onchange="updateRow(${index}, 'payDate', this.value)"></td>
+                    <td class="no-print" style="text-align:center;">
+                        <button class="action-btn" onclick="deleteRow(${index})">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update KPI
+            document.getElementById('kpi-paid').innerText = totalPaid.toFixed(2) + ' €';
+            document.getElementById('kpi-wait').innerText = totalWait.toFixed(2) + ' €';
+            document.getElementById('kpi-late').innerText = totalLate.toFixed(2) + ' €';
+
+            localStorage.setItem('fiscor_registre', JSON.stringify(entries));
+        }
+
+        // ACTIONS
+        function addRow() {
+            const today = new Date().toISOString().split('T')[0];
+            entries.push({ id: Date.now(), date: today, num: '', client: '', desc: '', amount: 0, status: 'wait', payDate: '' });
+            render();
+        }
+
+        function deleteRow(idx) {
+            if(confirm("Supprimer cette ligne ?")) {
+                entries.splice(idx, 1);
+                render();
+            }
+        }
+
+        function updateRow(idx, field, val) {
+            entries[idx][field] = field === 'amount' ? parseFloat(val) : val;
+            render(); // Re-render needed for KPI updates, though heavy. Optimization: update state and KPIs only.
+        }
+
+        function updateStatus(idx, select) {
+            entries[idx].status = select.value;
+            // Auto-fill payDate if paid
+            if(select.value === 'paid' && !entries[idx].payDate) {
+                entries[idx].payDate = new Date().toISOString().split('T')[0];
+            }
+            render();
+        }
+
+        function resetData() {
+            if(confirm("Tout effacer ? Cette action est irréversible.")) {
+                entries = [];
+                render();
+            }
+        }
+
+        // EXPORTS
+        function exportPDF() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                const element = document.getElementById('printable-area');
+                const opt = {
+                    margin: 5,
+                    filename: 'mon_registre_fiscor.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                };
+                html2pdf().set(opt).from(element).save().then(() => loader.style.display = 'none');
+            }, 1000);
+        }
+
+        function exportCSV() {
+            let csv = "Date;Numero;Client;Libelle;Montant;Statut;Date Encaissement\n";
+            entries.forEach(row => {
+                csv += `${row.date};${row.num};${row.client};${row.desc};${row.amount};${row.status};${row.payDate}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "registre.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        init();
+    </script>
+</body>
+</html>
