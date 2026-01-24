@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Signature & Accord</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1400px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .config-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+        .preview-col { flex: 1.3; min-width: 450px; display: flex; flex-direction: column; gap: 24px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .card-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; align-items: center; gap: 8px;
+            padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        }
+
+        /* Forms */
+        .inp-group { margin-bottom: 16px; }
+        .inp-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+        .inp-field {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg-subtle); color: var(--text-main); font-size: 0.95rem; transition: 0.2s;
+        }
+        .inp-field:focus { border-color: var(--accent); background: white; outline: none; box-shadow: 0 0 0 3px var(--accent-light); }
+        
+        .radio-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .radio-pill-opt { display: none; }
+        .radio-pill-lbl {
+            padding: 8px 16px; border: 1px solid var(--border); border-radius: 100px;
+            font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-secondary);
+            background: white; transition: 0.2s;
+        }
+        .radio-pill-opt:checked + .radio-pill-lbl {
+            background: var(--accent); color: white; border-color: var(--accent);
+        }
+
+        .checkbox-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 0.9rem; cursor: pointer; }
+        .checkbox-row input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+        /* Preview Area */
+        .preview-box {
+            background: white; border: 1px solid var(--border); border-radius: 12px;
+            padding: 30px; font-family: 'Times New Roman', serif; color: #000;
+            line-height: 1.5; position: relative;
+        }
+        .preview-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+            font-family: 'Inter', sans-serif;
+        }
+        .preview-actions { display: flex; gap: 10px; }
+        
+        /* Signature Block Style */
+        .sig-block {
+            border: 2px solid #000; padding: 20px; margin-top: 20px; page-break-inside: avoid;
+        }
+        .sig-title { text-transform: uppercase; font-weight: bold; text-decoration: underline; margin-bottom: 15px; font-size: 1.1rem; }
+        .sig-content { font-size: 0.95rem; margin-bottom: 20px; }
+        .sig-meta { display: flex; justify-content: space-between; margin-top: 30px; align-items: flex-end; }
+        .sig-box { border: 1px dashed #999; height: 80px; width: 200px; margin-top: 10px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 0.8rem; }
+
+        /* Email Generator Style */
+        .email-preview {
+            background: var(--bg-subtle); padding: 20px; border-radius: 12px; border: 1px solid var(--border);
+            font-family: 'Inter', sans-serif; font-size: 0.95rem; line-height: 1.6; white-space: pre-line;
+        }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; background: var(--bg-subtle); padding: 4px; border-radius: 12px; width: fit-content; margin-bottom: 20px; }
+        .tab-btn {
+            padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+            border: none; background: transparent; color: var(--text-secondary); transition: 0.2s;
+        }
+        .tab-btn.active { background: white; color: var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        /* Checklist */
+        .check-list { display: grid; gap: 10px; }
+        .check-item {
+            display: flex; gap: 10px; align-items: flex-start; padding: 10px;
+            background: var(--bg-subtle); border-radius: 8px; font-size: 0.9rem;
+        }
+        .check-icon { min-width: 20px; color: var(--success); }
+
+        /* Buttons */
+        .btn-main {
+            width: 100%; padding: 14px; background: var(--accent); color: white; border: none;
+            border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-main:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+        .btn-copy {
+            padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;
+            border: 1px solid var(--border); background: white; color: var(--text-main); display: flex; align-items: center; gap: 6px;
+        }
+        .btn-copy:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Génération via Fiscor AI...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M9 14l2 2 4-4"></path></svg></div> SIGNATURE</div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- LEFT: CONFIG -->
+        <div class="config-col">
+            <div class="card">
+                <div class="card-title">1. Contexte du Document</div>
+                
+                <div class="inp-group">
+                    <label class="inp-label">Type de document</label>
+                    <div class="radio-pills">
+                        <input type="radio" name="docType" id="dt-devis" value="Devis" class="radio-pill-opt" checked onchange="update()">
+                        <label for="dt-devis" class="radio-pill-lbl">Devis</label>
+                        
+                        <input type="radio" name="docType" id="dt-bdc" value="Bon de Commande" class="radio-pill-opt" onchange="update()">
+                        <label for="dt-bdc" class="radio-pill-lbl">Bon de Commande</label>
+                        
+                        <input type="radio" name="docType" id="dt-contrat" value="Contrat" class="radio-pill-opt" onchange="update()">
+                        <label for="dt-contrat" class="radio-pill-lbl">Contrat</label>
+                    </div>
+                </div>
+
+                <div class="inp-group">
+                    <label class="inp-label">Variante (Format)</label>
+                    <div class="radio-pills">
+                        <input type="radio" name="variant" id="v-b2b" value="b2b" class="radio-pill-opt" checked onchange="update()">
+                        <label for="v-b2b" class="radio-pill-lbl">B2B Complet</label>
+                        
+                        <input type="radio" name="variant" id="v-b2c" value="b2c" class="radio-pill-opt" onchange="update()">
+                        <label for="v-b2c" class="radio-pill-lbl">B2B/B2C Simple</label>
+                        
+                        <input type="radio" name="variant" id="v-en" value="en" class="radio-pill-opt" onchange="update()">
+                        <label for="v-en" class="radio-pill-lbl">English (Intl)</label>
+                    </div>
+                </div>
+
+                <div class="inp-group">
+                    <label class="inp-label">Données Clés</label>
+                    <input type="text" id="clientName" class="inp-field" placeholder="Nom Client / Société" oninput="update()">
+                    <div style="display:flex; gap:10px; margin-top:8px;">
+                        <input type="text" id="totalPrice" class="inp-field" placeholder="Prix Total TTC" oninput="update()">
+                        <input type="text" id="deadline" class="inp-field" placeholder="Délai / Date fin" oninput="update()">
+                    </div>
+                </div>
+
+                <div class="inp-group">
+                    <label class="inp-label">Clauses à valider (Cocher)</label>
+                    <label class="checkbox-row"><input type="checkbox" id="chk-cgv" checked onchange="update()"> Acceptation CGV</label>
+                    <label class="checkbox-row"><input type="checkbox" id="chk-deposit" onchange="update()"> Acompte de 30% requis</label>
+                    <label class="checkbox-row"><input type="checkbox" id="chk-retract" onchange="update()"> Renoncement délai rétractation (Démarrage immédiat)</label>
+                </div>
+
+                <button class="btn-main" onclick="generate()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>
+                    Générer le Bloc
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Preuves à Conserver (Checklist)</div>
+                <div class="check-list">
+                    <div class="check-item">
+                        <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <div><strong>Le Devis Signé</strong> (PDF ou scan) avec la mention "Bon pour accord".</div>
+                    </div>
+                    <div class="check-item">
+                        <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <div><strong>Email de transmission</strong> du devis signé (preuve de date certaine).</div>
+                    </div>
+                    <div class="check-item">
+                        <svg class="check-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <div><strong>Preuve du virement d'acompte</strong> (valide tacitement le devis).</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: PREVIEW -->
+        <div class="preview-col">
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('block')">Bloc Signature</button>
+                <button class="tab-btn" onclick="switchTab('email')">Email d'Envoi</button>
+            </div>
+
+            <!-- TAB 1: BLOCK -->
+            <div id="tab-block">
+                <div class="preview-header">
+                    <strong>Aperçu (Prêt à coller)</strong>
+                    <div class="preview-actions">
+                        <button class="btn-copy" onclick="copyBlock()">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            Copier
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="preview-box" id="sig-render">
+                    <!-- JS Generated -->
+                </div>
+                
+                <div style="margin-top:20px; font-size:0.9rem; color:var(--text-secondary);">
+                    💡 <strong>Conseil :</strong> Copiez ce bloc et collez-le en bas de votre document Word, Google Doc ou dans le corps de votre email de validation.
+                </div>
+            </div>
+
+            <!-- TAB 2: EMAIL -->
+            <div id="tab-email" style="display:none;">
+                <div class="inp-group">
+                    <label class="inp-label">Ton du message</label>
+                    <div class="radio-pills">
+                        <input type="radio" name="emailTone" id="et-neutre" value="neutre" class="radio-pill-opt" checked onchange="updateEmail()">
+                        <label for="et-neutre" class="radio-pill-lbl">Neutre / Pro</label>
+                        
+                        <input type="radio" name="emailTone" id="et-friendly" value="friendly" class="radio-pill-opt" onchange="updateEmail()">
+                        <label for="et-friendly" class="radio-pill-lbl">Friendly</label>
+                        
+                        <input type="radio" name="emailTone" id="et-ferme" value="ferme" class="radio-pill-opt" onchange="updateEmail()">
+                        <label for="et-ferme" class="radio-pill-lbl">Ferme (Deadline)</label>
+                    </div>
+                </div>
+
+                <div class="email-preview" id="email-content">
+                    <!-- JS Generated -->
+                </div>
+                <div style="text-align:right; margin-top:10px;">
+                    <button class="btn-copy" onclick="copyEmail()">Copier l'email</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // DATA & TEMPLATES
+        const TEXTS = {
+            b2b: {
+                title: "BON POUR ACCORD",
+                intro: "Le Client reconnaît avoir pris connaissance des Conditions Générales de Vente (CGV) jointes et les accepte sans réserve.",
+                details: "Validation pour la commande ci-dessus d'un montant total de {PRICE} TTC. Délai de réalisation estimé : {DEADLINE}.",
+                deposit: "Le démarrage de la prestation est conditionné au versement de l'acompte de 30%.",
+                retract: "Le Client professionnel renonce expressément à son droit de rétractation pour permettre le démarrage immédiat.",
+                sign: "Fait à ______________________, le ______________________"
+            },
+            b2c: {
+                title: "ACCEPTATION DU DEVIS",
+                intro: "Je soussigné(e), accepte le présent devis et les conditions de vente.",
+                details: "Montant total à payer : {PRICE} TTC.",
+                deposit: "Un acompte est requis pour valider la commande.",
+                retract: "Je demande l'exécution immédiate de la prestation et renonce à mon droit de rétractation de 14 jours.",
+                sign: "Date et Signature :"
+            },
+            en: {
+                title: "APPROVAL / ACCEPTANCE",
+                intro: "The Client acknowledges having read and accepted the attached Terms and Conditions.",
+                details: "Validation for the quote above. Total amount: {PRICE}. Estimated delivery: {DEADLINE}.",
+                deposit: "Work will commence upon receipt of the deposit.",
+                retract: "The Client waives the cooling-off period for immediate start.",
+                sign: "Signed in ______________________, on ______________________"
+            }
+        };
+
+        const EMAILS = {
+            neutre: "Bonjour {CLIENT},\n\nVeuillez trouver ci-joint le {DOC} correspondant à nos échanges.\n\nSi cela vous convient, merci de me le retourner daté et signé, avec la mention \"Bon pour accord\".\n\nJe reste à votre disposition pour toute question.\n\nCordialement,",
+            friendly: "Hello {CLIENT} !\n\nComme discuté, voici le {DOC} pour ton projet.\n\nTout est détaillé dedans. Si c'est tout bon pour toi, tu as juste à me le renvoyer signé (une photo ou scan suffit) pour qu'on lance la machine 🚀\n\nÀ très vite,",
+            ferme: "Bonjour {CLIENT},\n\nSuite à notre entretien, je vous transmets le {DOC} récapitulatif.\n\nPour garantir le planning et le délai annoncé ({DEADLINE}), j'ai besoin de votre validation signée avant le [Date Limite]. Passé ce délai, je ne pourrai plus garantir ma disponibilité immédiate.\n\nDans l'attente de votre retour,\n\nCordialement,"
+        };
+
+        // STATE
+        let state = {
+            docType: 'Devis',
+            variant: 'b2b',
+            clientName: '',
+            price: '',
+            deadline: '',
+            cgv: true,
+            deposit: false,
+            retract: false,
+            emailTone: 'neutre'
+        };
+
+        // INIT
+        function init() {
+            update();
+            updateEmail();
+        }
+
+        // UPDATE LOGIC
+        function update() {
+            // Get inputs
+            state.docType = document.querySelector('input[name="docType"]:checked').value;
+            state.variant = document.querySelector('input[name="variant"]:checked').value;
+            state.clientName = document.getElementById('clientName').value || '[Nom Client]';
+            state.price = document.getElementById('totalPrice').value || '[Montant]';
+            state.deadline = document.getElementById('deadline').value || '[Délai]';
+            state.cgv = document.getElementById('chk-cgv').checked;
+            state.deposit = document.getElementById('chk-deposit').checked;
+            state.retract = document.getElementById('chk-retract').checked;
+
+            renderBlock();
+            updateEmail();
+        }
+
+        function renderBlock() {
+            const t = TEXTS[state.variant];
+            
+            let content = t.intro;
+            if (state.variant === 'b2b' || state.variant === 'en') {
+                content += `<br><br>${t.details.replace('{PRICE}', state.price).replace('{DEADLINE}', state.deadline)}`;
+            } else {
+                content += `<br>${t.details.replace('{PRICE}', state.price)}`;
+            }
+
+            if (state.deposit) content += `<br><strong>${t.deposit}</strong>`;
+            if (state.retract) content += `<br><em>${t.retract}</em>`;
+
+            const html = `
+                <div class="sig-block">
+                    <div class="sig-title">${t.title}</div>
+                    <div class="sig-content">${content}</div>
+                    <div class="sig-meta">
+                        <div>
+                            <div>${t.sign}</div>
+                            <br>
+                            <strong>${state.clientName}</strong><br>
+                            ${state.variant === 'b2b' ? '(Nom + Qualité du signataire + Cachet)' : ''}
+                        </div>
+                        <div class="sig-box">
+                            ${state.variant === 'en' ? 'Signature' : 'Signature'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('sig-render').innerHTML = html;
+        }
+
+        function updateEmail() {
+            state.emailTone = document.querySelector('input[name="emailTone"]:checked').value;
+            const tpl = EMAILS[state.emailTone];
+            
+            const txt = tpl
+                .replace('{CLIENT}', state.clientName)
+                .replace('{DOC}', state.docType.toLowerCase())
+                .replace('{DEADLINE}', state.deadline);
+                
+            document.getElementById('email-content').innerText = txt;
+        }
+
+        // ACTIONS
+        function generate() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                update(); // Refresh
+                // Visual feedback only
+            }, 1200);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-block').style.display = 'none';
+            document.getElementById('tab-email').style.display = 'none';
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tab).style.display = 'block';
+        }
+
+        function copyBlock() {
+            // Copy HTML rendered as text/html for word/email support? 
+            // Or just plain text. Let's try to copy the visual structure.
+            const range = document.createRange();
+            range.selectNode(document.getElementById('sig-render'));
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            
+            const btn = document.querySelector('.btn-copy');
+            const original = btn.innerHTML;
+            btn.innerHTML = 'Copié !';
+            setTimeout(() => btn.innerHTML = original, 1500);
+        }
+
+        function copyEmail() {
+            const text = document.getElementById('email-content').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Email copié !");
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
