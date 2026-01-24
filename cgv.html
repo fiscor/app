@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Générateur de CGV</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1400px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .config-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+        .preview-col { flex: 1.4; min-width: 450px; display: flex; flex-direction: column; gap: 24px; }
+
+        /* Config Sections */
+        .section-card {
+            background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .section-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; align-items: center; gap: 8px;
+            padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        }
+
+        .inp-group { margin-bottom: 16px; }
+        .inp-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+        .inp-field {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg-subtle); color: var(--text-main); font-size: 0.95rem; transition: 0.2s;
+        }
+        .inp-field:focus { border-color: var(--accent); background: white; outline: none; box-shadow: 0 0 0 3px var(--accent-light); }
+        textarea.inp-field { resize: vertical; min-height: 80px; }
+
+        /* Radio Tiles */
+        .radio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .radio-opt { position: relative; }
+        .radio-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .radio-tile {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+            padding: 16px; border: 1px solid var(--border); border-radius: 12px;
+            cursor: pointer; transition: 0.2s; background: white; height: 100%;
+        }
+        .radio-tile svg { width: 24px; height: 24px; margin-bottom: 8px; color: var(--text-secondary); }
+        .radio-tile span { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+        
+        .radio-opt input:checked + .radio-tile {
+            border-color: var(--accent); background: var(--accent-light);
+        }
+        .radio-opt input:checked + .radio-tile svg { color: var(--accent); }
+        .radio-opt input:checked + .radio-tile span { color: var(--accent-dark); }
+
+        /* Preview Document */
+        .doc-preview {
+            background: white; border: 1px solid var(--border); border-radius: 4px;
+            padding: 40px; font-family: 'Times New Roman', serif; color: #000;
+            line-height: 1.6; font-size: 11pt; box-shadow: var(--shadow-card);
+            min-height: 800px;
+        }
+        
+        .doc-title { text-align: center; font-weight: bold; font-size: 16pt; margin-bottom: 30px; text-transform: uppercase; font-family: 'Arial', sans-serif; }
+        .doc-section-title { font-weight: bold; font-size: 12pt; margin-top: 20px; margin-bottom: 10px; text-transform: uppercase; font-family: 'Arial', sans-serif; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        .doc-p { margin-bottom: 12px; text-align: justify; }
+        .doc-list { margin-bottom: 12px; padding-left: 20px; }
+        .doc-list li { margin-bottom: 6px; }
+        
+        /* Actions */
+        .action-bar { display: flex; gap: 12px; margin-top: 20px; justify-content: center; }
+        .btn-main {
+            padding: 14px 28px; background: var(--accent); color: white; border: none;
+            border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: 0.2s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-main:hover { background: var(--accent-dark); transform: translateY(-2px); }
+        .btn-sec {
+            padding: 14px 28px; background: white; color: var(--text-main); border: 1px solid var(--border);
+            border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-sec:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Génération de vos CGV sur-mesure...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div> GÉNÉRATEUR CGV</div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- LEFT: CONFIG -->
+        <div class="config-col">
+            
+            <div class="section-card">
+                <div class="section-title">1. Votre Activité</div>
+                <div class="inp-group">
+                    <span class="inp-label">Que vendez-vous ?</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="type" value="service" checked onchange="update()">
+                            <div class="radio-tile">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                                <span>Services</span>
+                            </div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="type" value="goods" onchange="update()">
+                            <div class="radio-tile">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                                <span>Biens / E-com</span>
+                            </div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="type" value="digital" onchange="update()">
+                            <div class="radio-tile">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span>Numérique</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="inp-group">
+                    <span class="inp-label">Vos Clients</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="client" value="b2b" checked onchange="update()">
+                            <div class="radio-tile">
+                                <span>B2B (Pros)</span>
+                            </div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="client" value="b2c" onchange="update()">
+                            <div class="radio-tile">
+                                <span>B2C (Particuliers)</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">2. Identité Vendeur</div>
+                <div class="inp-group">
+                    <label class="inp-label">Nom Société / Entrepreneur</label>
+                    <input type="text" id="company-name" class="inp-field" placeholder="Ex: Studio Web SARL" oninput="update()">
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">Adresse Complète</label>
+                    <textarea id="company-address" class="inp-field" rows="2" placeholder="12 rue..." oninput="update()"></textarea>
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">SIRET</label>
+                    <input type="text" id="company-siret" class="inp-field" placeholder="000 000 000 00000" oninput="update()">
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">Email SAV / Contact</label>
+                    <input type="text" id="company-email" class="inp-field" placeholder="contact@..." oninput="update()">
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-title">3. Modalités</div>
+                <div class="inp-group">
+                    <label class="inp-label">Délai de Paiement</label>
+                    <select id="payment-term" class="inp-field" onchange="update()">
+                        <option value="immediat">Immédiat / À la commande</option>
+                        <option value="reception">À réception de facture</option>
+                        <option value="30jours">30 jours</option>
+                    </select>
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">Acompte requis ?</label>
+                    <select id="deposit" class="inp-field" onchange="update()">
+                        <option value="no">Non</option>
+                        <option value="30">Oui, 30%</option>
+                        <option value="50">Oui, 50%</option>
+                    </select>
+                </div>
+                <div class="inp-group" id="delivery-group" style="display:none;">
+                    <label class="inp-label">Délai Livraison / Exécution (Jours)</label>
+                    <input type="number" id="delivery-days" class="inp-field" value="7" oninput="update()">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: PREVIEW -->
+        <div class="preview-col">
+            
+            <div id="doc-render" class="doc-preview">
+                <!-- Text Injected Here -->
+            </div>
+
+            <div class="action-bar">
+                <button class="btn-sec" onclick="copyText()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Copier Texte
+                </button>
+                <button class="btn-main" onclick="exportPDF()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Télécharger PDF
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // STATE
+        let data = {
+            type: 'service', // service, goods, digital
+            client: 'b2b', // b2b, b2c
+            company: { name: '', address: '', siret: '', email: '' },
+            payment: 'reception',
+            deposit: 'no',
+            delivery: 7
+        };
+
+        // TEXT SNIPPETS
+        const CLAUSES = {
+            header: `CONDITIONS GÉNÉRALES DE VENTE (CGV)`,
+            preamble: `Les présentes conditions générales de vente (ci-après "CGV") s'appliquent à toutes les commandes passées auprès de {NAME}, {SIRET}, domicilié au {ADDRESS} (ci-après "le Vendeur").`,
+            object: {
+                service: `Le Vendeur propose des prestations de services (conseil, création, développement) détaillées sur le devis accepté par le Client.`,
+                goods: `Le Vendeur propose la vente de produits physiques via son site internet ou catalogue.`,
+                digital: `Le Vendeur propose la vente de produits numériques (ebooks, formations, logiciels) en téléchargement.`
+            },
+            price: `Les prix sont indiqués en Euros. Le Vendeur se réserve le droit de modifier ses prix à tout moment, mais le produit sera facturé sur la base du tarif en vigueur au moment de la validation de la commande.`,
+            payment: {
+                immediat: `Le paiement est exigible immédiatement à la commande.`,
+                reception: `Le paiement est dû à réception de la facture.`,
+                30jours: `Le paiement doit intervenir sous 30 jours suivant la date d'émission de la facture.`
+            },
+            deposit: `Un acompte de {PCT}% est exigé à la signature du devis. Le solde est dû à la livraison.`,
+            late_b2b: `En cas de retard de paiement, des pénalités égales à 3 fois le taux d'intérêt légal seront exigibles, ainsi qu'une indemnité forfaitaire de 40€ pour frais de recouvrement (Art. D.441-5 C. Com).`,
+            late_b2c: `Tout retard de paiement entraînera l'exigibilité immédiate de la totalité des sommes dues.`,
+            delivery: {
+                service: `Les prestations seront exécutées dans le délai convenu au devis (estimatif : {DAYS} jours). Le Vendeur est tenu à une obligation de moyens.`,
+                goods: `Les produits sont livrés à l'adresse indiquée sous un délai indicatif de {DAYS} jours. Les risques sont transférés au Client dès la remise au transporteur (B2B) ou à la réception (B2C).`,
+                digital: `L'accès aux produits numériques est immédiat après validation du paiement (téléchargement ou accès plateforme).`
+            },
+            withdrawal: {
+                b2b: `S'agissant d'une transaction entre professionnels, le droit de rétractation ne s'applique pas, sauf disposition contractuelle contraire.`,
+                b2c_goods: `Conformément à l'article L.221-18 du Code de la consommation, le Client dispose d'un délai de 14 jours pour exercer son droit de rétractation sans avoir à justifier de motifs ni à payer de pénalités.`,
+                b2c_service: `Le Client peut se rétracter sous 14 jours. Si l'exécution a commencé avec son accord avant la fin de ce délai, le droit est prorogé au prorata. Si le service est pleinement exécuté, le droit s'éteint.`,
+                b2c_digital: `Conformément à l'article L.221-28 du Code de la consommation, le Client renonce expressément à son droit de rétractation pour les contenus numériques non fournis sur support matériel dont l'exécution a commencé après accord préalable.`
+            },
+            warranty: {
+                goods: `Le Vendeur est tenu des défauts de conformité (Garantie légale de conformité) et des vices cachés (Art. 1641 Code Civil).`,
+                service: `Le Vendeur s'engage à apporter tout le soin et la diligence nécessaires à l'exécution des prestations. Sa responsabilité est limitée au montant de la commande (sauf préjudice corporel).`,
+                digital: `Les produits numériques sont fournis "tels quels". Le Vendeur ne garantit pas l'adéquation à un usage spécifique du Client.`
+            },
+            disputes: {
+                b2b: `Tout litige relatif à l'interprétation et à l'exécution des présentes CGV est soumis au droit français. À défaut de résolution amiable, le litige sera porté devant le Tribunal de Commerce du siège du Vendeur.`,
+                b2c: `En cas de litige, le Client peut recourir à une médiation conventionnelle (Art. L.612-1 C. Conso). À défaut, les tribunaux français seront seuls compétents.`
+            },
+            contact: `Pour toute réclamation : {EMAIL}.`
+        };
+
+        // INIT
+        function init() {
+            update();
+        }
+
+        // UPDATE LOGIC
+        function update() {
+            // 1. Get Inputs
+            data.type = document.querySelector('input[name="type"]:checked').value;
+            data.client = document.querySelector('input[name="client"]:checked').value;
+            data.company.name = document.getElementById('company-name').value || "[NOM SOCIETE]";
+            data.company.address = document.getElementById('company-address').value || "[ADRESSE]";
+            data.company.siret = document.getElementById('company-siret').value || "[SIRET]";
+            data.company.email = document.getElementById('company-email').value || "[EMAIL]";
+            
+            data.payment = document.getElementById('payment-term').value;
+            data.deposit = document.getElementById('deposit').value;
+            data.delivery = document.getElementById('delivery-days').value || 7;
+
+            // Show/Hide Inputs
+            const delGroup = document.getElementById('delivery-group');
+            if (data.type === 'goods' || data.type === 'service') delGroup.style.display = 'block';
+            else delGroup.style.display = 'none'; // digital instant
+
+            renderDoc();
+        }
+
+        function renderDoc() {
+            const container = document.getElementById('doc-render');
+            let html = `<div class="doc-title">${CLAUSES.header}</div>`;
+
+            // 1. Preambule
+            let pre = CLAUSES.preamble
+                .replace('{NAME}', data.company.name)
+                .replace('{SIRET}', data.company.siret)
+                .replace('{ADDRESS}', data.company.address);
+            html += `<div class="doc-section-title">1. Objet & Champ d'application</div>`;
+            html += `<p class="doc-p">${pre}</p>`;
+            html += `<p class="doc-p">${CLAUSES.object[data.type]}</p>`;
+
+            // 2. Prix
+            html += `<div class="doc-section-title">2. Prix</div>`;
+            html += `<p class="doc-p">${CLAUSES.price}</p>`;
+
+            // 3. Paiement
+            html += `<div class="doc-section-title">3. Paiement</div>`;
+            html += `<p class="doc-p">${CLAUSES.payment[data.payment]}</p>`;
+            
+            if (data.deposit !== 'no') {
+                html += `<p class="doc-p">${CLAUSES.deposit.replace('{PCT}', data.deposit)}</p>`;
+            }
+
+            if (data.client === 'b2b') {
+                html += `<p class="doc-p">${CLAUSES.late_b2b}</p>`;
+            } else {
+                html += `<p class="doc-p">${CLAUSES.late_b2c}</p>`;
+            }
+
+            // 4. Livraison / Exécution
+            html += `<div class="doc-section-title">4. Livraison & Exécution</div>`;
+            let delText = CLAUSES.delivery[data.type].replace('{DAYS}', data.delivery);
+            html += `<p class="doc-p">${delText}</p>`;
+
+            // 5. Rétractation
+            html += `<div class="doc-section-title">5. Droit de rétractation</div>`;
+            let retKey = '';
+            if (data.client === 'b2b') retKey = 'b2b';
+            else if (data.type === 'goods') retKey = 'b2c_goods';
+            else if (data.type === 'service') retKey = 'b2c_service';
+            else retKey = 'b2c_digital';
+            
+            html += `<p class="doc-p">${CLAUSES.withdrawal[retKey]}</p>`;
+
+            // 6. Garanties
+            html += `<div class="doc-section-title">6. Garanties & Responsabilité</div>`;
+            html += `<p class="doc-p">${CLAUSES.warranty[data.type]}</p>`;
+
+            // 7. Litiges
+            html += `<div class="doc-section-title">7. Droit applicable & Litiges</div>`;
+            html += `<p class="doc-p">${CLAUSES.disputes[data.client]}</p>`;
+            html += `<p class="doc-p">${CLAUSES.contact.replace('{EMAIL}', data.company.email)}</p>`;
+
+            container.innerHTML = html;
+        }
+
+        function copyText() {
+            const text = document.getElementById('doc-render').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Texte copié !");
+            });
+        }
+
+        function exportPDF() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                const element = document.getElementById('doc-render');
+                const opt = {
+                    margin: 20,
+                    filename: 'CGV_Fiscor.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save().then(() => loader.style.display = 'none');
+            }, 1200);
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
