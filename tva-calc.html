@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Calculatrice TVA</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1200px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .calc-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+        .history-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+
+        /* Card */
+        .card {
+            background: var(--bg-card); padding: 32px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .card-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; align-items: center; justify-content: space-between;
+        }
+
+        /* Toggle Switch */
+        .mode-toggle {
+            display: flex; background: var(--bg-subtle); padding: 4px; border-radius: 12px;
+            margin-bottom: 24px; border: 1px solid var(--border);
+        }
+        .mode-btn {
+            flex: 1; padding: 12px; text-align: center; border-radius: 8px; cursor: pointer;
+            font-weight: 600; font-size: 0.95rem; color: var(--text-secondary); transition: 0.2s;
+        }
+        .mode-btn.active {
+            background: white; color: var(--accent); box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Input Large */
+        .input-hero {
+            width: 100%; font-size: 2.5rem; font-weight: 800; color: var(--text-main);
+            border: none; border-bottom: 2px solid var(--border); padding: 10px 0;
+            margin-bottom: 24px; font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: border-color 0.2s; background: transparent;
+        }
+        .input-hero:focus { border-color: var(--accent); outline: none; }
+        .input-hero::placeholder { color: #E2E8F0; }
+
+        /* Rates Grid */
+        .rates-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
+        .rate-btn {
+            padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: white;
+            text-align: center; font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text-secondary);
+        }
+        .rate-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .rate-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* Results Box */
+        .result-box {
+            background: var(--accent-light); border-radius: 16px; padding: 24px;
+            text-align: center; margin-bottom: 24px; position: relative;
+            border: 1px solid rgba(124, 58, 237, 0.1);
+        }
+        .res-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); font-weight: 700; margin-bottom: 8px; }
+        .res-value { font-size: 3rem; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 16px; font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        .res-detail {
+            display: flex; justify-content: space-between; padding-top: 16px; 
+            border-top: 1px dashed rgba(124, 58, 237, 0.2); font-size: 0.95rem;
+        }
+        .res-detail-item { text-align: center; flex: 1; }
+        .res-detail-val { font-weight: 700; color: var(--text-main); display: block; }
+        .res-detail-lbl { font-size: 0.75rem; color: var(--text-secondary); }
+
+        .formula-tag {
+            position: absolute; top: 10px; right: 10px; font-size: 0.7rem; 
+            background: rgba(255,255,255,0.6); padding: 4px 8px; border-radius: 100px;
+            color: var(--accent-dark); font-family: monospace; font-weight: 600;
+        }
+
+        /* History Table */
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table th {
+            text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);
+            padding: 12px 8px; border-bottom: 2px solid var(--border);
+        }
+        .history-table td {
+            padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text-main);
+        }
+        .row-del { cursor: pointer; color: var(--text-secondary); transition: 0.2s; }
+        .row-del:hover { color: var(--danger); }
+
+        /* Buttons */
+        .btn-add {
+            width: 100%; padding: 14px; background: white; color: var(--text-main); border: 1px solid var(--border);
+            border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-add:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-export {
+            padding: 8px 16px; background: var(--bg-subtle); border: 1px solid var(--border);
+            border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-main);
+        }
+        .btn-export:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Export des calculs en cours...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"></path><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div> TVA CALC</div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- CALCULATOR -->
+        <div class="calc-col">
+            <div class="card">
+                <div class="mode-toggle">
+                    <div class="mode-btn active" id="mode-ht" onclick="setMode('ht')">HT → TTC</div>
+                    <div class="mode-btn" id="mode-ttc" onclick="setMode('ttc')">TTC → HT</div>
+                </div>
+
+                <div style="position:relative;">
+                    <label style="font-size:0.8rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Montant <span id="lbl-input">HT</span></label>
+                    <input type="number" id="input-val" class="input-hero" placeholder="0.00" oninput="calculate()">
+                    <span style="position:absolute; right:0; top:35px; font-size:1.5rem; color:var(--text-secondary); font-weight:300;">€</span>
+                </div>
+
+                <div class="rates-grid">
+                    <div class="rate-btn active" onclick="setRate(20)" id="rate-20">20%</div>
+                    <div class="rate-btn" onclick="setRate(10)" id="rate-10">10%</div>
+                    <div class="rate-btn" onclick="setRate(5.5)" id="rate-5.5">5.5%</div>
+                    <div class="rate-btn" onclick="setRate(2.1)" id="rate-2.1">2.1%</div>
+                </div>
+
+                <div class="result-box">
+                    <div class="formula-tag" id="formula-display">× 1.20</div>
+                    <div class="res-label">Montant <span id="lbl-result">TTC</span></div>
+                    <div class="res-value" id="res-main">0.00 €</div>
+                    
+                    <div class="res-detail">
+                        <div class="res-detail-item">
+                            <span class="res-detail-val" id="res-base">0.00 €</span>
+                            <span class="res-detail-lbl">Base <span id="lbl-base">HT</span></span>
+                        </div>
+                        <div class="res-detail-item" style="color:var(--accent);">
+                            <span class="res-detail-val" id="res-tva">+ 0.00 €</span>
+                            <span class="res-detail-lbl">Montant TVA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-add" onclick="addToHistory()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Ajouter au panier
+                </button>
+            </div>
+        </div>
+
+        <!-- HISTORY -->
+        <div class="history-col">
+            <div class="card" style="min-height:500px;">
+                <div class="card-title">
+                    <span>Panier de Calculs</span>
+                    <button class="btn-export" onclick="exportHistory()">Exporter</button>
+                </div>
+
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>HT</th>
+                            <th>TVA</th>
+                            <th>TTC</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-list">
+                        <!-- JS Items -->
+                    </tbody>
+                    <tfoot id="history-total" style="border-top:2px solid var(--text-main);">
+                        <!-- Totals -->
+                    </tfoot>
+                </table>
+
+                <div id="empty-msg" style="text-align:center; color:var(--text-secondary); margin-top:40px; font-size:0.9rem;">
+                    Aucun calcul enregistré.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // STATE
+        let state = {
+            mode: 'ht', // 'ht' (HT->TTC) or 'ttc' (TTC->HT)
+            rate: 20,
+            val: 0,
+            history: []
+        };
+
+        // INIT
+        function init() {
+            calculate();
+        }
+
+        // ACTIONS
+        function setMode(mode) {
+            state.mode = mode;
+            document.getElementById('mode-ht').className = mode === 'ht' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('mode-ttc').className = mode === 'ttc' ? 'mode-btn active' : 'mode-btn';
+            
+            // Update Labels
+            document.getElementById('lbl-input').innerText = mode === 'ht' ? 'HT' : 'TTC';
+            document.getElementById('lbl-result').innerText = mode === 'ht' ? 'TTC' : 'HT';
+            document.getElementById('lbl-base').innerText = mode === 'ht' ? 'HT' : 'TTC';
+            
+            calculate();
+        }
+
+        function setRate(rate) {
+            state.rate = rate;
+            document.querySelectorAll('.rate-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('rate-' + rate).classList.add('active');
+            calculate();
+        }
+
+        function calculate() {
+            const input = parseFloat(document.getElementById('input-val').value);
+            state.val = isNaN(input) ? 0 : input;
+
+            let resMain = 0;
+            let resBase = state.val;
+            let resTva = 0;
+            let formula = '';
+
+            if (state.mode === 'ht') {
+                // HT -> TTC
+                resTva = state.val * (state.rate / 100);
+                resMain = state.val + resTva;
+                formula = `× ${(1 + state.rate/100).toFixed(3)}`;
+            } else {
+                // TTC -> HT
+                // Formula: TTC / (1 + rate/100)
+                resMain = state.val / (1 + state.rate / 100);
+                resTva = state.val - resMain;
+                formula = `÷ ${(1 + state.rate/100).toFixed(3)}`;
+            }
+
+            // Update UI
+            document.getElementById('res-main').innerText = resMain.toFixed(2) + ' €';
+            document.getElementById('res-base').innerText = resBase.toFixed(2) + ' €';
+            document.getElementById('res-tva').innerText = '+ ' + resTva.toFixed(2) + ' €';
+            document.getElementById('formula-display').innerText = formula;
+        }
+
+        function addToHistory() {
+            if (state.val === 0) return;
+
+            // Recalculate to capture snapshot
+            const input = state.val;
+            let ht, tva, ttc;
+
+            if (state.mode === 'ht') {
+                ht = input;
+                tva = input * (state.rate / 100);
+                ttc = ht + tva;
+            } else {
+                ttc = input;
+                ht = input / (1 + state.rate / 100);
+                tva = ttc - ht;
+            }
+
+            state.history.push({
+                rate: state.rate,
+                ht: ht,
+                tva: tva,
+                ttc: ttc
+            });
+
+            renderHistory();
+            
+            // Reset input for next calc
+            document.getElementById('input-val').value = '';
+            document.getElementById('input-val').focus();
+            calculate();
+        }
+
+        function removeFromHistory(index) {
+            state.history.splice(index, 1);
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const tbody = document.getElementById('history-list');
+            const tfoot = document.getElementById('history-total');
+            const empty = document.getElementById('empty-msg');
+
+            tbody.innerHTML = '';
+            
+            if (state.history.length === 0) {
+                empty.style.display = 'block';
+                tfoot.innerHTML = '';
+                return;
+            }
+            empty.style.display = 'none';
+
+            let sumHT = 0;
+            let sumTVA = 0;
+            let sumTTC = 0;
+
+            state.history.forEach((item, idx) => {
+                sumHT += item.ht;
+                sumTVA += item.tva;
+                sumTTC += item.ttc;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><span style="font-weight:700; color:var(--accent); font-size:0.8rem;">${item.rate}%</span></td>
+                        <td>${item.ht.toFixed(2)}</td>
+                        <td style="color:var(--text-secondary);">${item.tva.toFixed(2)}</td>
+                        <td style="font-weight:600;">${item.ttc.toFixed(2)}</td>
+                        <td style="text-align:right;">
+                            <span class="row-del" onclick="removeFromHistory(${idx})">×</span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tfoot.innerHTML = `
+                <tr>
+                    <td style="font-weight:800; padding-top:16px;">TOTAL</td>
+                    <td style="font-weight:700; padding-top:16px;">${sumHT.toFixed(2)}</td>
+                    <td style="font-weight:700; padding-top:16px; color:var(--text-secondary);">${sumTVA.toFixed(2)}</td>
+                    <td style="font-weight:800; padding-top:16px; color:var(--accent); font-size:1rem;">${sumTTC.toFixed(2)} €</td>
+                    <td></td>
+                </tr>
+            `;
+        }
+
+        function exportHistory() {
+            if (state.history.length === 0) return alert("Le panier est vide.");
+
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+
+            setTimeout(() => {
+                const element = document.querySelector('.history-col .card'); // Export the whole history card
+                const opt = {
+                    margin: 10,
+                    filename: 'Fiscor_Calculs_TVA.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save().then(() => {
+                    loader.style.display = 'none';
+                });
+            }, 1200);
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
