@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Assistant Déclaration TVA</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1400px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .input-col { flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 24px; }
+        .preview-col { flex: 1.2; min-width: 450px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .card-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; align-items: center; gap: 10px;
+            padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        }
+
+        /* Inputs */
+        .inp-group { margin-bottom: 16px; }
+        .inp-label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+        .inp-field {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg-subtle); color: var(--text-main); font-size: 0.95rem; transition: 0.2s;
+        }
+        .inp-field:focus { border-color: var(--accent); background: white; outline: none; box-shadow: 0 0 0 3px var(--accent-light); }
+
+        .currency-input { position: relative; }
+        .currency-input input { padding-right: 30px; text-align: right; font-weight: 600; }
+        .currency-input::after {
+            content: "€"; position: absolute; right: 12px; top: 12px; color: var(--text-secondary); font-weight: 600;
+        }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .tab-btn {
+            padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border);
+            background: white; color: var(--text-secondary); cursor: pointer; font-weight: 600; font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* Virtual Form (Simulation CA3) */
+        .tax-form {
+            background: white; border: 1px solid var(--text-main); padding: 30px;
+            font-family: 'Courier New', monospace; font-size: 0.9rem; position: relative;
+        }
+        .tax-form::before {
+            content: "SIMULATION"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 4rem; color: rgba(0,0,0,0.05); font-weight: 800; pointer-events: none;
+        }
+        
+        .tf-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; font-weight: bold; }
+        .tf-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding: 8px 0; align-items: center; }
+        .tf-row.highlight { background: #FEF9C3; }
+        .tf-row.total { border-top: 2px solid #000; border-bottom: 2px solid #000; font-weight: bold; margin-top: 10px; background: #eee; }
+        
+        .tf-label { flex: 1; }
+        .tf-box { 
+            border: 1px solid #000; padding: 4px 8px; min-width: 100px; text-align: right; background: white;
+            font-family: 'Inter', sans-serif; font-weight: 600;
+        }
+        .tf-code { font-size: 0.7rem; color: #666; margin-right: 10px; font-weight: bold; }
+
+        /* Checklist */
+        .cl-item { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+        .cl-check { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+        .cl-text { font-size: 0.9rem; color: var(--text-main); line-height: 1.4; }
+        .cl-badge { font-size: 0.7rem; padding: 2px 6px; background: var(--bg-subtle); border-radius: 4px; font-weight: 700; color: var(--text-secondary); margin-left: 6px; }
+
+        /* Actions */
+        .btn-action {
+            width: 100%; padding: 14px; background: var(--accent); color: white; border: none;
+            border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-action:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+        /* FAQ */
+        .faq-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+        .faq-q { padding: 12px; background: var(--bg-subtle); font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; font-size: 0.9rem; }
+        .faq-a { padding: 12px; font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary); display: none; border-top: 1px solid var(--border); }
+        .faq-item.open .faq-a { display: block; }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Analyse de la période et préparation...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div> TVA DÉCLARATION</div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- LEFT: DATA ENTRY -->
+        <div class="input-col">
+            <div class="card">
+                <div class="card-title">1. Période & Contexte</div>
+                <div class="inp-group">
+                    <label class="inp-label">Période concernée</label>
+                    <input type="month" id="period" class="inp-field" onchange="updateUI()">
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">Régime</label>
+                    <select id="regime" class="inp-field" onchange="updateUI()">
+                        <option value="ca3">Réel Normal (Mensuel/Trimestriel CA3)</option>
+                        <option value="ca12">Réel Simplifié (Acomptes/CA12)</option>
+                    </select>
+                </div>
+                <div style="font-size:0.8rem; color:var(--warning); background:#FFFBEB; padding:10px; border-radius:8px; display:flex; gap:8px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <div><strong>Attention aux dates :</strong> Déclarez selon la date d'encaissement (Service) ou de facture (Bien).</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">2. Ventes (TVA Collectée)</div>
+                <div class="inp-group">
+                    <label class="inp-label">CA HT France (Taux 20%)</label>
+                    <div class="currency-input"><input type="number" id="ca-20" class="inp-field" placeholder="0.00" oninput="calculate()"></div>
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">CA HT France (Taux 10%)</label>
+                    <div class="currency-input"><input type="number" id="ca-10" class="inp-field" placeholder="0.00" oninput="calculate()"></div>
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">CA HT France (Taux 5.5%)</label>
+                    <div class="currency-input"><input type="number" id="ca-55" class="inp-field" placeholder="0.00" oninput="calculate()"></div>
+                </div>
+                <div style="border-top:1px solid var(--border); margin:15px 0;"></div>
+                <div class="inp-group">
+                    <label class="inp-label">Ventes UE (Intracommunautaire) - HT</label>
+                    <div class="currency-input"><input type="number" id="ca-ue" class="inp-field" placeholder="0.00" oninput="calculate()"></div>
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">Exportations (Hors UE) - HT</label>
+                    <div class="currency-input"><input type="number" id="ca-export" class="inp-field" placeholder="0.00" oninput="calculate()"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">3. Achats (TVA Déductible)</div>
+                <div class="inp-group">
+                    <label class="inp-label">TVA déductible sur Immobilisations</label>
+                    <div class="currency-input"><input type="number" id="ded-immo" class="inp-field" placeholder="0.00" oninput="calculate()"></div>
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">TVA déductible sur Autres Biens et Services (ABS)</label>
+                    <div class="currency-input"><input type="number" id="ded-abs" class="inp-field" placeholder="0.00" oninput="calculate()"></div>
+                </div>
+                <div class="inp-group">
+                    <label class="inp-label">Crédit de TVA reporté (Mois précédent)</label>
+                    <div class="currency-input"><input type="number" id="ded-credit" class="inp-field" placeholder="0.00" oninput="calculate()"></div>
+                </div>
+            </div>
+
+            <button class="btn-action" onclick="runCheck()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                Lancer la vérification
+            </button>
+        </div>
+
+        <!-- RIGHT: SIMULATION -->
+        <div class="preview-col">
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('form')">📄 Formulaire Virtuel</button>
+                <button class="tab-btn" onclick="switchTab('checklist')">✅ Checklist Contrôle</button>
+                <button class="tab-btn" onclick="switchTab('faq')">❓ FAQ & Aide</button>
+            </div>
+
+            <!-- TAB 1: FORM -->
+            <div id="tab-form">
+                <div id="printable-form" class="tax-form">
+                    <div class="tf-header">
+                        DÉCLARATION DE TVA (Aperçu Simplifié)<br>
+                        <span style="font-weight:400; font-size:0.8rem;">Ne pas envoyer - Pour préparation uniquement</span>
+                    </div>
+
+                    <div style="font-weight:bold; margin-bottom:10px;">A. MONTANT DES OPÉRATIONS RÉALISÉES</div>
+                    <div class="tf-row">
+                        <span class="tf-label"><span class="tf-code">01</span> Ventes, prestations de services (HT)</span>
+                        <div class="tf-box" id="res-base-fr">0</div>
+                    </div>
+                    <div class="tf-row">
+                        <span class="tf-label"><span class="tf-code">05</span> Autres opérations non imposables (Export)</span>
+                        <div class="tf-box" id="res-base-export">0</div>
+                    </div>
+                    <div class="tf-row">
+                        <span class="tf-label"><span class="tf-code">06</span> Livraisons intracommunautaires (UE)</span>
+                        <div class="tf-box" id="res-base-ue">0</div>
+                    </div>
+
+                    <div style="font-weight:bold; margin:20px 0 10px 0;">B. DÉCOMPTE DE LA TVA À PAYER</div>
+                    <div class="tf-row">
+                        <span class="tf-label"><span class="tf-code">08</span> Taux normal 20% (Base)</span>
+                        <div class="tf-box" id="res-base-20">0</div>
+                    </div>
+                    <div class="tf-row">
+                        <span class="tf-label"><span class="tf-code">09</span> Taux réduit 10% (Base)</span>
+                        <div class="tf-box" id="res-base-10">0</div>
+                    </div>
+                    <div class="tf-row">
+                        <span class="tf-label"><span class="tf-code">09B</span> Taux réduit 5.5% (Base)</span>
+                        <div class="tf-box" id="res-base-55">0</div>
+                    </div>
+                    <div class="tf-row highlight">
+                        <span class="tf-label"><span class="tf-code">16</span> TOTAL TVA BRUTE (Collectée)</span>
+                        <div class="tf-box" id="res-total-col">0</div>
+                    </div>
+
+                    <div style="font-weight:bold; margin:20px 0 10px 0;">C. TVA DÉDUCTIBLE</div>
+                    <div class="tf-row">
+                        <span class="tf-label"><span class="tf-code">19</span> Biens constituant des immobilisations</span>
+                        <div class="tf-box" id="res-ded-immo">0</div>
+                    </div>
+                    <div class="tf-row">
+                        <span class="tf-label"><span class="tf-code">20</span> Autres biens et services</span>
+                        <div class="tf-box" id="res-ded-abs">0</div>
+                    </div>
+                    <div class="tf-row">
+                        <span class="tf-label"><span class="tf-code">22</span> Report du crédit antérieur</span>
+                        <div class="tf-box" id="res-ded-credit">0</div>
+                    </div>
+                    <div class="tf-row highlight">
+                        <span class="tf-label"><span class="tf-code">23</span> TOTAL TVA DÉDUCTIBLE</span>
+                        <div class="tf-box" id="res-total-ded">0</div>
+                    </div>
+
+                    <div style="font-weight:bold; margin:20px 0 10px 0;">D. RÉSULTAT</div>
+                    <div class="tf-row total" id="row-pay">
+                        <span class="tf-label"><span class="tf-code">28</span> TVA NETTE À PAYER</span>
+                        <div class="tf-box" id="res-net-pay">0</div>
+                    </div>
+                    <div class="tf-row total" id="row-credit" style="display:none; color:var(--success);">
+                        <span class="tf-label"><span class="tf-code">25</span> CRÉDIT DE TVA (À reporter)</span>
+                        <div class="tf-box" id="res-credit-val">0</div>
+                    </div>
+                </div>
+
+                <button class="btn-sec" onclick="exportPDF()" style="margin-top:20px; width:100%; border:1px solid var(--border); background:white; padding:10px; border-radius:8px; cursor:pointer;">Télécharger PDF (Pour archives)</button>
+            </div>
+
+            <!-- TAB 2: CHECKLIST -->
+            <div id="tab-checklist" style="display:none;">
+                <div class="card">
+                    <div class="card-title">Checklist Avant Validation</div>
+                    <div id="cl-container">
+                        <!-- Injected -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: FAQ -->
+            <div id="tab-faq" style="display:none;">
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">C'est quoi "TVA sur les débits" ? <span>+</span></div>
+                    <div class="faq-a">C'est le régime classique pour la vente de biens : la TVA est exigible dès l'émission de la facture (débit), même si vous n'êtes pas encore payé.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">C'est quoi "TVA sur les encaissements" ? <span>+</span></div>
+                    <div class="faq-a">C'est le régime classique pour les prestations de services : la TVA n'est due que lorsque le client vous a payé.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">J'ai un crédit de TVA, que faire ? <span>+</span></div>
+                    <div class="faq-a">Vous pouvez soit demander le remboursement (formulaire spécifique, délais longs), soit le reporter sur la prochaine déclaration (recommandé pour les petits montants).</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Comment déclarer un achat UE ? <span>+</span></div>
+                    <div class="faq-a">C'est de l'autoliquidation. Vous devez déclarer la TVA comme si vous l'aviez vendue (Ligne 3B sur la vraie CA3, non simulée ici pour simplicité) ET la déduire en même temps. Opération blanche financièrement, mais obligatoire déclarativement.</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // STATE
+        let data = {
+            ca20: 0, ca10: 0, ca55: 0, caUe: 0, caExport: 0,
+            dedImmo: 0, dedAbs: 0, dedCredit: 0
+        };
+
+        const CHECKLIST = [
+            { txt: "J'ai vérifié la période (Mois/Trimestre) sur impots.gouv.", badge: "Base" },
+            { txt: "J'ai bien séparé le HT et la TVA pour chaque taux.", badge: "Calcul" },
+            { txt: "J'ai inclus les avoirs (ils diminuent le CA imposable).", badge: "Avoirs" },
+            { txt: "Pour les services : j'ai déclaré uniquement ce qui a été ENCAISSÉ.", badge: "Important" },
+            { txt: "J'ai le justificatif (facture fournisseur) pour chaque TVA déduite.", badge: "Preuve" },
+            { txt: "Je n'ai pas déduit la TVA sur des dépenses interdites (essence tourisme, hôtel...).", badge: "Règle" },
+            { txt: "J'ai bien reporté mon crédit de TVA du mois précédent (s'il y en avait).", badge: "Oubli fréquent" },
+            { txt: "Mes ventes UE (Intracom) sont bien isolées et j'ai fait ma DES/DEB si besoin.", badge: "Export" }
+        ];
+
+        // INIT
+        function init() {
+            // Set current month
+            document.getElementById('period').value = new Date().toISOString().slice(0, 7);
+            
+            // Render Checklist
+            const clContainer = document.getElementById('cl-container');
+            clContainer.innerHTML = CHECKLIST.map(item => `
+                <div class="cl-item">
+                    <input type="checkbox" class="cl-check">
+                    <div class="cl-text">${item.txt} <span class="cl-badge">${item.badge}</span></div>
+                </div>
+            `).join('');
+
+            calculate();
+        }
+
+        // CALCULATION
+        function calculate() {
+            // Get inputs
+            data.ca20 = parseFloat(document.getElementById('ca-20').value) || 0;
+            data.ca10 = parseFloat(document.getElementById('ca-10').value) || 0;
+            data.ca55 = parseFloat(document.getElementById('ca-55').value) || 0;
+            data.caUe = parseFloat(document.getElementById('ca-ue').value) || 0;
+            data.caExport = parseFloat(document.getElementById('ca-export').value) || 0;
+            
+            data.dedImmo = parseFloat(document.getElementById('ded-immo').value) || 0;
+            data.dedAbs = parseFloat(document.getElementById('ded-abs').value) || 0;
+            data.dedCredit = parseFloat(document.getElementById('ded-credit').value) || 0;
+
+            // Compute Collected
+            const tva20 = Math.round(data.ca20 * 0.20);
+            const tva10 = Math.round(data.ca10 * 0.10);
+            const tva55 = Math.round(data.ca55 * 0.055);
+            const totalCol = tva20 + tva10 + tva55;
+
+            // Compute Deductible
+            const totalDed = data.dedImmo + data.dedAbs + data.dedCredit;
+
+            // Result
+            const balance = totalCol - totalDed;
+
+            // Update UI
+            document.getElementById('res-base-fr').innerText = Math.round(data.ca20 + data.ca10 + data.ca55);
+            document.getElementById('res-base-ue').innerText = Math.round(data.caUe);
+            document.getElementById('res-base-export').innerText = Math.round(data.caExport);
+
+            document.getElementById('res-base-20').innerText = Math.round(data.ca20);
+            document.getElementById('res-base-10').innerText = Math.round(data.ca10);
+            document.getElementById('res-base-55').innerText = Math.round(data.ca55);
+            document.getElementById('res-total-col').innerText = totalCol;
+
+            document.getElementById('res-ded-immo').innerText = Math.round(data.dedImmo);
+            document.getElementById('res-ded-abs').innerText = Math.round(data.dedAbs);
+            document.getElementById('res-ded-credit').innerText = Math.round(data.dedCredit);
+            document.getElementById('res-total-ded').innerText = Math.round(totalDed);
+
+            const rowPay = document.getElementById('row-pay');
+            const rowCredit = document.getElementById('row-credit');
+
+            if (balance >= 0) {
+                rowPay.style.display = 'flex';
+                rowCredit.style.display = 'none';
+                document.getElementById('res-net-pay').innerText = Math.round(balance);
+            } else {
+                rowPay.style.display = 'none';
+                rowCredit.style.display = 'flex';
+                document.getElementById('res-credit-val').innerText = Math.abs(Math.round(balance));
+            }
+        }
+
+        // UX
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-form').style.display = 'none';
+            document.getElementById('tab-checklist').style.display = 'none';
+            document.getElementById('tab-faq').style.display = 'none';
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).style.display = 'block';
+        }
+
+        function runCheck() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                switchTab('checklist');
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }, 800);
+        }
+
+        function exportPDF() {
+            const element = document.getElementById('printable-form');
+            const opt = {
+                margin: 10,
+                filename: 'Fiscor_Preparation_TVA.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function updateUI() {
+            // Placeholder for future logic if regime changes structure
+        }
+
+        init();
+
+    </script>
+</body>
+</html>

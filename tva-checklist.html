@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Checklist TVA</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --success: #10B981;
+            --success-light: #D1FAE5;
+            --danger: #EF4444;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1200px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .config-col { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 24px; }
+        .list-col { flex: 2; min-width: 450px; display: flex; flex-direction: column; gap: 24px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .card-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; align-items: center; gap: 8px;
+            padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        }
+
+        /* Config Form */
+        .inp-group { margin-bottom: 16px; }
+        .inp-label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; display: block; }
+        
+        .radio-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .radio-opt { position: relative; }
+        .radio-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .radio-tile {
+            padding: 8px 16px; border: 1px solid var(--border); border-radius: 100px;
+            font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-secondary);
+            background: white; transition: 0.2s; display: inline-block;
+        }
+        .radio-opt input:checked + .radio-tile {
+            background: var(--accent); color: white; border-color: var(--accent);
+        }
+
+        .toggle-switch {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer;
+            transition: 0.2s; margin-bottom: 10px;
+        }
+        .toggle-switch:hover { background: var(--bg-subtle); border-color: var(--accent); }
+        .toggle-switch input { accent-color: var(--accent); width: 18px; height: 18px; }
+        .toggle-label { font-size: 0.9rem; font-weight: 500; }
+
+        /* Progress Bar */
+        .progress-container { margin-bottom: 24px; background: white; padding: 20px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-card); }
+        .progress-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 700; font-size: 0.9rem; }
+        .progress-track { height: 12px; background: var(--bg-subtle); border-radius: 100px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s ease; border-radius: 100px; }
+
+        /* Checklist Items */
+        .cl-section { margin-bottom: 30px; }
+        .cl-section-title {
+            font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .cl-section-title span { background: var(--accent-light); color: var(--accent); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; }
+
+        .task-item {
+            display: flex; align-items: flex-start; gap: 16px; padding: 16px;
+            background: white; border: 1px solid var(--border); border-radius: 12px;
+            margin-bottom: 12px; transition: 0.2s; cursor: pointer;
+        }
+        .task-item:hover { border-color: var(--accent); transform: translateX(4px); }
+        .task-item.checked { background: var(--bg-subtle); opacity: 0.7; border-color: transparent; }
+        .task-item.checked .task-txt { text-decoration: line-through; color: var(--text-secondary); }
+
+        .task-checkbox {
+            width: 24px; height: 24px; border: 2px solid var(--border); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            transition: 0.2s; background: white;
+        }
+        .task-item.checked .task-checkbox { background: var(--success); border-color: var(--success); color: white; }
+        
+        .task-content { flex: 1; }
+        .task-txt { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; color: var(--text-main); transition: 0.2s; }
+        .task-meta { font-size: 0.8rem; color: var(--text-secondary); display: flex; gap: 12px; align-items: center; }
+        .task-tag { background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
+        .tab-btn {
+            padding: 10px 20px; border-radius: 100px; background: white; border: 1px solid var(--border);
+            font-weight: 600; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: 0.2s;
+        }
+        .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* Proof Pack */
+        .proof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+        .proof-card {
+            background: white; border: 1px dashed var(--border); border-radius: 12px; padding: 16px;
+            display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+        }
+        .proof-icon { width: 32px; height: 32px; color: var(--accent); }
+        .proof-name { font-weight: 700; font-size: 0.9rem; }
+        .proof-desc { font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* Buttons */
+        .btn-action {
+            width: 100%; padding: 14px; background: var(--accent); color: white; border: none;
+            border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-action:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media print {
+            .config-col, .tabs, .btn-action { display: none !important; }
+            .workspace { display: block; }
+            .list-col { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Génération de votre routine TVA...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></div> TVA CHECKLIST</div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- LEFT: CONFIG -->
+        <div class="config-col">
+            <div class="card">
+                <div class="card-title">Paramètres de la routine</div>
+                
+                <div class="inp-group">
+                    <span class="inp-label">Périodicité</span>
+                    <div class="radio-pills">
+                        <label class="radio-opt">
+                            <input type="radio" name="period" value="monthly" checked onchange="updateList()">
+                            <span class="radio-tile">Mensuelle</span>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="period" value="quarterly" onchange="updateList()">
+                            <span class="radio-tile">Trimestrielle</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="inp-group">
+                    <span class="inp-label">Spécificités (Filtrer)</span>
+                    <label class="toggle-switch">
+                        <span class="toggle-label">Facturation UE / Hors UE</span>
+                        <input type="checkbox" id="chk-intl" onchange="updateList()">
+                    </label>
+                    <label class="toggle-switch">
+                        <span class="toggle-label">Avoirs & Remboursements</span>
+                        <input type="checkbox" id="chk-refund" onchange="updateList()">
+                    </label>
+                    <label class="toggle-switch">
+                        <span class="toggle-label">Frais Pro (Notes de frais)</span>
+                        <input type="checkbox" id="chk-expenses" checked onchange="updateList()">
+                    </label>
+                </div>
+
+                <button class="btn-action" onclick="exportPDF()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Télécharger la Checklist
+                </button>
+            </div>
+
+            <div class="card" style="background:#FFFBEB; border-color:#FCD34D;">
+                <div style="font-weight:700; color:#92400E; margin-bottom:8px;">💡 Conseil Pro</div>
+                <div style="font-size:0.9rem; color:#78350F;">
+                    Pour gagner du temps, scannez vos factures d'achat au fil de l'eau. Ne gardez pas tout pour le dernier jour du mois !
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: LIST -->
+        <div class="list-col">
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('main')">Checklist Complète</button>
+                <button class="tab-btn" onclick="switchTab('proofs')">Pack Preuves</button>
+                <button class="tab-btn" onclick="switchTab('express')">Routine Express</button>
+            </div>
+
+            <!-- TAB 1: MAIN CHECKLIST -->
+            <div id="tab-main">
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Progression</span>
+                        <span id="progress-text">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="progress-bar"></div>
+                    </div>
+                </div>
+
+                <div id="checklist-container">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- TAB 2: PROOFS -->
+            <div id="tab-proofs" style="display:none;">
+                <h3 style="margin-bottom:20px;">Documents à archiver impérativement (6 ans)</h3>
+                <div class="proof-grid">
+                    <div class="proof-card">
+                        <svg class="proof-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <div class="proof-name">Factures de Vente</div>
+                        <div class="proof-desc">Numérotation continue, mentions légales complètes.</div>
+                    </div>
+                    <div class="proof-card">
+                        <svg class="proof-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                        <div class="proof-name">Relevés Bancaires</div>
+                        <div class="proof-desc">Justifiant les encaissements déclarés.</div>
+                    </div>
+                    <div class="proof-card">
+                        <svg class="proof-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
+                        <div class="proof-name">Factures d'Achat</div>
+                        <div class="proof-desc">Original avec mention TVA obligatoire pour déduction.</div>
+                    </div>
+                    <div class="proof-card">
+                        <svg class="proof-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <div class="proof-name">Accusés de Réception</div>
+                        <div class="proof-desc">Preuve de dépôt de la déclaration TVA.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: EXPRESS -->
+            <div id="tab-express" style="display:none;">
+                <div class="card">
+                    <div class="card-title">Routine Hebdo (10 min)</div>
+                    <div class="task-item" onclick="toggleTask(this)">
+                        <div class="task-checkbox"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" style="opacity:0"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                        <div class="task-content">
+                            <div class="task-txt">Scanner les factures fournisseurs de la semaine</div>
+                        </div>
+                    </div>
+                    <div class="task-item" onclick="toggleTask(this)">
+                        <div class="task-checkbox"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" style="opacity:0"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                        <div class="task-content">
+                            <div class="task-txt">Vérifier que toutes les factures de vente sont envoyées</div>
+                        </div>
+                    </div>
+                    <div class="task-item" onclick="toggleTask(this)">
+                        <div class="task-checkbox"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" style="opacity:0"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                        <div class="task-content">
+                            <div class="task-txt">Pointer les paiements reçus (rapprochement)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // DATA : CHECKLIST ITEMS
+        const TASKS = [
+            // BLOC A : VENTES
+            { id: 'v1', cat: 'Collectée (Ventes)', txt: 'Rassembler toutes les factures émises sur la période', tag: 'Base', req: 'all' },
+            { id: 'v2', cat: 'Collectée (Ventes)', txt: 'Vérifier la numérotation (aucun trou dans la suite)', tag: 'Contrôle', req: 'all' },
+            { id: 'v3', cat: 'Collectée (Ventes)', txt: 'Isoler les ventes HT (Export / Intracom)', tag: 'Tri', req: 'intl' },
+            { id: 'v4', cat: 'Collectée (Ventes)', txt: 'Déduire les Avoirs émis du total imposable', tag: 'Calcul', req: 'refund' },
+            
+            // BLOC B : ACHATS
+            { id: 'a1', cat: 'Déductible (Achats)', txt: 'Récupérer toutes les factures fournisseurs', tag: 'Base', req: 'all' },
+            { id: 'a2', cat: 'Déductible (Achats)', txt: 'Vérifier la mention TVA sur chaque facture (Pas de ticket CB !)', tag: 'Vigilance', req: 'all' },
+            { id: 'a3', cat: 'Déductible (Achats)', txt: 'Exclure les dépenses non déductibles (Hôtel, Cadeaux, Essence Tourisme)', tag: 'Règle', req: 'expenses' },
+            { id: 'a4', cat: 'Déductible (Achats)', txt: 'Calculer le total TVA déductible par taux', tag: 'Calcul', req: 'all' },
+
+            // BLOC C : CONTRÔLE
+            { id: 'c1', cat: 'Cohérence', txt: 'Vérifier Base HT x 20% = Montant TVA (à peu près)', tag: 'Maths', req: 'all' },
+            { id: 'c2', cat: 'Cohérence', txt: 'Rapprochement bancaire : Tout ce qui est déclaré a été encaissé (si presta)', tag: 'Banque', req: 'all' },
+            
+            // BLOC D : DÉCLARATION
+            { id: 'd1', cat: 'Déclaration', txt: 'Se connecter à l\'espace pro impots.gouv', tag: 'Action', req: 'all' },
+            { id: 'd2', cat: 'Déclaration', txt: 'Remplir les cases (01, 08, 19, 20...)', tag: 'Action', req: 'all' },
+            { id: 'd3', cat: 'Déclaration', txt: 'Déclarer la TVA Intracom (Autoliquidation) si achats UE', tag: 'Attention', req: 'intl' },
+            { id: 'd4', cat: 'Déclaration', txt: 'Valider et Télépayer', tag: 'Fin', req: 'all' },
+
+            // BLOC E : ARCHIVAGE
+            { id: 'e1', cat: 'Archivage', txt: 'Télécharger l\'accusé de réception (PDF)', tag: 'Preuve', req: 'all' },
+            { id: 'e2', cat: 'Archivage', txt: 'Stocker le dossier complet (Factures + Décla) sur Drive/Cloud', tag: 'Sécurité', req: 'all' }
+        ];
+
+        // STATE
+        let state = {
+            period: 'monthly',
+            intl: false,
+            refund: false,
+            expenses: true,
+            checked: {}
+        };
+
+        // INIT
+        function init() {
+            updateList();
+        }
+
+        // UPDATE LIST
+        function updateList() {
+            // Read config
+            state.period = document.querySelector('input[name="period"]:checked').value;
+            state.intl = document.getElementById('chk-intl').checked;
+            state.refund = document.getElementById('chk-refund').checked;
+            state.expenses = document.getElementById('chk-expenses').checked;
+
+            const container = document.getElementById('checklist-container');
+            container.innerHTML = '';
+
+            // Group by category
+            const groups = {};
+            TASKS.forEach(t => {
+                let show = false;
+                if (t.req === 'all') show = true;
+                if (t.req === 'intl' && state.intl) show = true;
+                if (t.req === 'refund' && state.refund) show = true;
+                if (t.req === 'expenses' && state.expenses) show = true;
+
+                if (show) {
+                    if (!groups[t.cat]) groups[t.cat] = [];
+                    groups[t.cat].push(t);
+                }
+            });
+
+            // Render
+            for (const [cat, items] of Object.entries(groups)) {
+                let html = `<div class="cl-section">
+                    <div class="cl-section-title">${cat} <span>${items.length}</span></div>`;
+                
+                items.forEach(t => {
+                    const isChecked = state.checked[t.id] ? 'checked' : '';
+                    const opacityStyle = isChecked ? 'opacity:1' : 'opacity:0';
+                    
+                    html += `
+                        <div class="task-item ${isChecked}" onclick="toggleCheck('${t.id}', this)">
+                            <div class="task-checkbox" style="${isChecked ? 'background:var(--success); border-color:var(--success);' : ''}">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" style="${opacityStyle}; color:white;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </div>
+                            <div class="task-content">
+                                <div class="task-txt">${t.txt}</div>
+                                <div class="task-meta">
+                                    <span class="task-tag">${t.tag}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                container.innerHTML += html;
+            }
+            updateProgress();
+        }
+
+        function toggleCheck(id, el) {
+            state.checked[id] = !state.checked[id];
+            
+            // Visual Update immediately for snapiness
+            const cb = el.querySelector('.task-checkbox');
+            const svg = cb.querySelector('svg');
+            
+            if (state.checked[id]) {
+                el.classList.add('checked');
+                cb.style.background = 'var(--success)';
+                cb.style.borderColor = 'var(--success)';
+                svg.style.opacity = '1';
+                svg.style.color = 'white';
+            } else {
+                el.classList.remove('checked');
+                cb.style.background = 'white';
+                cb.style.borderColor = 'var(--border)';
+                svg.style.opacity = '0';
+            }
+            updateProgress();
+        }
+
+        function updateProgress() {
+            // Count total visible items vs checked
+            const allVisibleIds = [];
+            TASKS.forEach(t => {
+                let show = false;
+                if (t.req === 'all') show = true;
+                if (t.req === 'intl' && state.intl) show = true;
+                if (t.req === 'refund' && state.refund) show = true;
+                if (t.req === 'expenses' && state.expenses) show = true;
+                if (show) allVisibleIds.push(t.id);
+            });
+
+            const total = allVisibleIds.length;
+            const checkedCount = allVisibleIds.filter(id => state.checked[id]).length;
+            const pct = total === 0 ? 0 : Math.round((checkedCount / total) * 100);
+
+            document.getElementById('progress-bar').style.width = pct + '%';
+            document.getElementById('progress-text').innerText = pct + '%';
+        }
+
+        // TABS
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-main').style.display = 'none';
+            document.getElementById('tab-proofs').style.display = 'none';
+            document.getElementById('tab-express').style.display = 'none';
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).style.display = 'block';
+        }
+
+        // TOGGLE SIMPLE TASK
+        function toggleTask(el) {
+            el.classList.toggle('checked');
+            const svg = el.querySelector('svg');
+            const cb = el.querySelector('.task-checkbox');
+            
+            if (el.classList.contains('checked')) {
+                svg.style.opacity = '1';
+                cb.style.background = 'var(--success)';
+                cb.style.borderColor = 'var(--success)';
+                cb.style.color = 'white';
+            } else {
+                svg.style.opacity = '0';
+                cb.style.background = 'white';
+                cb.style.borderColor = 'var(--border)';
+            }
+        }
+
+        // EXPORT
+        function exportPDF() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                // Ensure main tab is visible for printing
+                switchTab('main');
+                const element = document.getElementById('tab-main');
+                const opt = {
+                    margin: 10,
+                    filename: `Checklist_TVA_${state.period}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save().then(() => loader.style.display = 'none');
+            }, 800);
+        }
+
+        init();
+
+    </script>
+</body>
+</html>

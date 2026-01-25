@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Autoliquidation TVA</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1400px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .sim-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+        .info-col { flex: 1.2; min-width: 450px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .card-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; align-items: center; gap: 10px;
+            padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        }
+
+        /* Form Elements */
+        .inp-group { margin-bottom: 20px; }
+        .inp-label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; display: block; }
+        
+        .radio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .radio-opt { position: relative; }
+        .radio-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .radio-tile {
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            padding: 14px; border: 1px solid var(--border); border-radius: 8px;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+            background: var(--bg-subtle); color: var(--text-secondary); height: 100%;
+        }
+        .radio-opt input:checked + .radio-tile {
+            background: white; border-color: var(--accent); color: var(--accent);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+        }
+
+        /* Result Box */
+        .result-box {
+            padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 24px;
+            border: 2px solid transparent; transition: 0.3s;
+        }
+        .res-auto { background: #FFFBEB; border-color: #FCD34D; color: #92400E; }
+        .res-tva { background: #F0FDF4; border-color: #86EFAC; color: #166534; }
+        .res-exo { background: #F5F3FF; border-color: #C4B5FD; color: #5B21B6; }
+
+        .res-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
+        .res-desc { font-size: 1rem; opacity: 0.9; margin-bottom: 20px; line-height: 1.5; }
+
+        .mention-copy {
+            background: white; padding: 12px; border-radius: 8px; border: 1px dashed currentColor;
+            font-family: monospace; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center;
+            justify-content: space-between; gap: 10px; text-align: left;
+        }
+        .mention-copy:hover { opacity: 0.8; }
+
+        /* Checklist */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .tab-btn {
+            padding: 8px 16px; border-radius: 100px; border: 1px solid var(--border);
+            background: white; color: var(--text-secondary); cursor: pointer; font-weight: 600; font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        .cl-item { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+        .cl-check { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+        .cl-text { font-size: 0.9rem; color: var(--text-main); line-height: 1.4; }
+        .cl-badge { font-size: 0.7rem; padding: 2px 6px; background: var(--bg-subtle); border-radius: 4px; font-weight: 700; color: var(--text-secondary); margin-left: 6px; }
+
+        /* Actions */
+        .btn-main {
+            width: 100%; padding: 14px; background: var(--accent); color: white; border: none;
+            border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-main:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Analyse du cas fiscal...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div> TVA-AUTO</div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- LEFT: SIMULATOR -->
+        <div class="sim-col">
+            <div class="card">
+                <div class="card-title">1. Votre Rôle</div>
+                <div class="inp-group">
+                    <span class="inp-label">Je suis...</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="role" value="seller" checked onchange="update()">
+                            <div class="radio-tile">Vendeur<br>(J'émets la facture)</div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="role" value="buyer" onchange="update()">
+                            <div class="radio-tile">Acheteur<br>(Je reçois la facture)</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">2. Le Partenaire</div>
+                <div class="inp-group">
+                    <span class="inp-label">Localisation du Partenaire</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="geo" value="ue" checked onchange="update()">
+                            <div class="radio-tile">Union Européenne (Hors FR)</div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="geo" value="world" onchange="update()">
+                            <div class="radio-tile">Hors UE (Monde)</div>
+                        </label>
+                        <label class="radio-opt" style="grid-column: span 2;">
+                            <input type="radio" name="geo" value="fr" onchange="update()">
+                            <div class="radio-tile">France (Domestique)</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="inp-group" id="client-type-group">
+                    <span class="inp-label">Type de Partenaire</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="type" value="b2b" checked onchange="update()">
+                            <div class="radio-tile">Pro (B2B)<br>Avec N° TVA</div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="type" value="b2c" onchange="update()">
+                            <div class="radio-tile">Particulier (B2C)<br>Sans N° TVA</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">3. La Transaction</div>
+                <div class="inp-group">
+                    <span class="inp-label">Objet de la vente</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="obj" value="service" checked onchange="update()">
+                            <div class="radio-tile">Prestation de Service</div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="obj" value="goods" onchange="update()">
+                            <div class="radio-tile">Vente de Biens</div>
+                        </label>
+                        <label class="radio-opt" style="grid-column: span 2; display:none;" id="btp-opt">
+                            <input type="radio" name="obj" value="btp" onchange="update()">
+                            <div class="radio-tile">Sous-traitance BTP</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: RESULT -->
+        <div class="info-col">
+            
+            <div id="result-container" class="result-box res-auto">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('vendor')">Checklist Vendeur</button>
+                <button class="tab-btn" onclick="switchTab('buyer')">Checklist Acheteur</button>
+                <button class="tab-btn" onclick="switchTab('proofs')">Preuves à garder</button>
+            </div>
+
+            <div id="tab-vendor">
+                <div class="cl-item"><div class="cl-check">✅</div><div class="cl-text">Vérifier le numéro de TVA Intracom du client sur VIES.</div></div>
+                <div class="cl-item"><div class="cl-check">✅</div><div class="cl-text">Obtenir une attestation d'assujetti si hors UE.</div></div>
+                <div class="cl-item"><div class="cl-check">✅</div><div class="cl-text">Établir la facture HT (Hors Taxes).</div></div>
+                <div class="cl-item"><div class="cl-check">✅</div><div class="cl-text">Ajouter la mention obligatoire "Autoliquidation".</div></div>
+                <div class="cl-item"><div class="cl-check">✅</div><div class="cl-text">Déclarer l'opération sur la DES (Services) ou DEB (Biens) en douane.</div></div>
+            </div>
+
+            <div id="tab-buyer" style="display:none;">
+                <div class="cl-item"><div class="cl-check">✅</div><div class="cl-text">Vérifier que la facture reçue est bien HT.</div></div>
+                <div class="cl-item"><div class="cl-check">✅</div><div class="cl-text">Calculer la TVA française due (ex: 20%).</div></div>
+                <div class="cl-item"><div class="cl-check">✅</div><div class="cl-text">Déclarer cette TVA sur la ligne "Achats de prestations de services intracommunautaires" (CA3).</div></div>
+                <div class="cl-item"><div class="cl-check">✅</div><div class="cl-text">Déduire cette même TVA (opération blanche) si vous avez le droit à déduction.</div></div>
+            </div>
+
+            <div id="tab-proofs" style="display:none;">
+                <div class="cl-item"><div class="cl-check">📂</div><div class="cl-text">Copie d'écran validation VIES (datée).</div></div>
+                <div class="cl-item"><div class="cl-check">📂</div><div class="cl-text">Contrat ou Devis signé mentionnant les numéros de TVA.</div></div>
+                <div class="cl-item"><div class="cl-check">📂</div><div class="cl-text">Preuve de sortie du territoire (pour les biens).</div></div>
+                <div class="cl-item"><div class="cl-check">📂</div><div class="cl-text">Facture d'origine conforme.</div></div>
+            </div>
+
+            <div class="card" style="margin-top:20px;">
+                <div class="card-title">Pourquoi ce résultat ?</div>
+                <div id="explanation-text" style="font-size:0.95rem; line-height:1.6; color:var(--text-secondary);">
+                    <!-- Injected -->
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // DATA LOGIC
+        // Simple decision tree based on Role, Geo, Type, Object.
+
+        function init() {
+            update();
+        }
+
+        function update() {
+            // Get inputs
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const geo = document.querySelector('input[name="geo"]:checked').value;
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const obj = document.querySelector('input[name="obj"]:checked').value;
+
+            // UI Adjustments
+            const btpOpt = document.getElementById('btp-opt');
+            if(geo === 'fr' && type === 'b2b') btpOpt.style.display = 'flex';
+            else btpOpt.style.display = 'none';
+
+            let title = "";
+            let desc = "";
+            let mention = "";
+            let cssClass = "";
+            let explain = "";
+
+            // LOGIC ENGINE
+            if (role === 'seller') {
+                if (geo === 'fr') {
+                    if (obj === 'btp' && type === 'b2b') {
+                        title = "AUTOLIQUIDATION";
+                        desc = "Vous ne facturez pas la TVA. C'est l'entreprise principale qui la déclare.";
+                        mention = "Autoliquidation, art 283-2 du CGI.";
+                        cssClass = "res-auto";
+                        explain = "En sous-traitance BTP, pour éviter la fraude, la TVA est acquittée par le donneur d'ordre.";
+                    } else {
+                        title = "TVA FACTURÉE (Classique)";
+                        desc = "Vous facturez la TVA française (sauf si vous êtes en franchise en base).";
+                        mention = "TVA 20% (ou franchise : TVA non applicable, art 293 B du CGI).";
+                        cssClass = "res-tva";
+                        explain = "Vente domestique classique. Pas de mécanisme d'autoliquidation ici.";
+                    }
+                } else if (geo === 'ue') {
+                    if (type === 'b2b') {
+                        title = "AUTOLIQUIDATION";
+                        desc = "Vous facturez HT. Le client UE déclare la TVA chez lui.";
+                        mention = obj === 'service' ? "Autoliquidation, art 196 Directive 2006/112/CE." : "Exonération de TVA, art 262 ter I du CGI.";
+                        cssClass = "res-auto";
+                        explain = "Le principe B2B en UE est la taxation au lieu du preneur (client). C'est donc lui qui autoliquide.";
+                    } else {
+                        title = "TVA FACTURÉE (FR ou OSS)";
+                        desc = "Pour les particuliers UE, vous facturez la TVA française (sauf dépassement seuil OSS).";
+                        mention = "TVA Française incluse (20%).";
+                        cssClass = "res-tva";
+                        explain = "En B2C, la TVA est due par le vendeur. Si vous dépassez 10k€ de ventes UE, vous devez utiliser le guichet OSS.";
+                    }
+                } else { // WORLD
+                    title = "EXONÉRATION (Export)";
+                    desc = "Pas de TVA facturée. Ce n'est pas de l'autoliquidation, c'est une exonération.";
+                    mention = "Exonération de TVA, art 262 I du CGI.";
+                    cssClass = "res-exo";
+                    explain = "Les exportations sont exonérées de TVA française. Le client paiera les taxes à l'importation dans son pays.";
+                }
+            } 
+            else { // BUYER
+                if (geo === 'ue' && type === 'b2b') {
+                    title = "AUTOLIQUIDATION (À payer)";
+                    desc = "Vous recevez une facture HT. Vous DEVEZ calculer et déclarer la TVA française.";
+                    mention = "Action : Ajouter TVA sur CA3 (Ligne 3B).";
+                    cssClass = "res-auto";
+                    explain = "En achetant HT en UE, vous créez une dette de TVA envers l'État français. Vous la déclarez et la déduisez simultanément (opération blanche).";
+                } else if (geo === 'world' && obj === 'service' && type === 'b2b') {
+                    title = "AUTOLIQUIDATION (À payer)";
+                    desc = "L'achat de services hors UE est aussi soumis à autoliquidation en France.";
+                    mention = "Action : Autoliquider la TVA française.";
+                    cssClass = "res-auto";
+                    explain = "Même hors UE, les services sont taxables au lieu du preneur (vous). Vous devez payer la TVA française sur cet achat.";
+                } else {
+                    title = "PAS D'ACTION SPÉCIALE";
+                    desc = "Soit vous payez la TVA au fournisseur (France), soit c'est de l'import de biens (TVA Douane).";
+                    mention = "Vérifiez simplement la facture.";
+                    cssClass = "res-tva";
+                    explain = "Pour les biens hors UE, la TVA est payée à la douane lors de l'importation, pas via autoliquidation sur la facture fournisseur.";
+                }
+            }
+
+            // Render
+            const container = document.getElementById('result-container');
+            container.className = "result-box " + cssClass;
+            
+            container.innerHTML = `
+                <div class="res-title">${title}</div>
+                <div class="res-desc">${desc}</div>
+                <div class="mention-copy" onclick="copyMention(this)">
+                    <span>${mention}</span>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </div>
+            `;
+
+            document.getElementById('explanation-text').innerHTML = explain;
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-vendor').style.display = 'none';
+            document.getElementById('tab-buyer').style.display = 'none';
+            document.getElementById('tab-proofs').style.display = 'none';
+            
+            event.target.classList.add('active');
+            document.getElementById('tab-' + tabId).style.display = 'block';
+        }
+
+        function copyMention(el) {
+            const text = el.querySelector('span').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = el.querySelector('svg');
+                el.style.background = "#DCFCE7";
+                el.style.borderColor = "#166534";
+                setTimeout(() => {
+                    el.style.background = "white";
+                    el.style.borderColor = "currentColor";
+                }, 1000);
+            });
+        }
+
+        function generatePDF() {
+            // Placeholder for PDF generation feature if needed
+            alert("Fonctionnalité PDF disponible prochainement.");
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>

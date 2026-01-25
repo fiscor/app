@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - Mentions TVA</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1400px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .config-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+        .result-col { flex: 1.4; min-width: 450px; display: flex; flex-direction: column; gap: 24px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); padding: 24px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .card-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; align-items: center; gap: 8px;
+            padding-bottom: 12px; border-bottom: 1px solid var(--border);
+        }
+
+        /* Form Elements */
+        .inp-group { margin-bottom: 20px; }
+        .inp-label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; display: block; }
+        
+        .radio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .radio-opt { position: relative; cursor: pointer; }
+        .radio-opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .radio-tile {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+            padding: 16px; border: 1px solid var(--border); border-radius: 12px;
+            font-size: 0.9rem; font-weight: 600; transition: 0.2s; background: var(--bg-subtle); color: var(--text-secondary);
+            height: 100%;
+        }
+        .radio-opt input:checked + .radio-tile {
+            background: white; border-color: var(--accent); color: var(--accent);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+        }
+        .tile-icon { width: 24px; height: 24px; margin-bottom: 8px; stroke-width: 2; }
+
+        /* Result Area */
+        .preview-box {
+            background: white; border: 1px solid var(--border); border-radius: 12px;
+            padding: 30px; position: relative; box-shadow: var(--shadow-card);
+        }
+        .preview-header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 2px solid var(--text-main); padding-bottom: 16px; margin-bottom: 24px;
+        }
+        .ph-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+        .ph-badge { 
+            background: var(--accent-light); color: var(--accent); padding: 6px 12px; 
+            border-radius: 100px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+        }
+
+        .mention-block { margin-bottom: 24px; background: var(--bg-subtle); border-radius: 12px; padding: 20px; border: 1px dashed var(--border); }
+        .mb-label { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .mb-content { 
+            font-family: 'Courier New', monospace; font-size: 0.95rem; color: var(--text-main); line-height: 1.5; 
+            background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+        }
+        
+        .btn-copy {
+            background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px;
+            cursor: pointer; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); transition: 0.2s;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .btn-copy:hover { border-color: var(--accent); color: var(--accent); background: white; }
+
+        /* Checklist Section */
+        .cl-container { display: grid; gap: 10px; }
+        .cl-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: var(--bg-subtle); border-radius: 8px; }
+        .cl-icon { color: var(--success); min-width: 20px; margin-top: 2px; }
+        .cl-txt { font-size: 0.9rem; color: var(--text-main); }
+        .cl-txt strong { color: var(--text-main); font-weight: 700; }
+
+        /* Action Buttons */
+        .btn-main {
+            width: 100%; padding: 14px; background: var(--accent); color: white; border: none;
+            border-radius: 100px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-main:hover { background: var(--accent-dark); transform: translateY(-2px); }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Analyse de la situation fiscale...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg></div> TVA MENTIONS</div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- CONFIGURATION -->
+        <div class="config-col">
+            <div class="card">
+                <div class="card-title">1. Votre Profil</div>
+                <div class="inp-group">
+                    <span class="inp-label">Régime TVA</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="regime" value="franchise" checked onchange="update()">
+                            <div class="radio-tile">
+                                <svg class="tile-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                                Franchise<br>(Pas de TVA)
+                            </div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="regime" value="reel" onchange="update()">
+                            <div class="radio-tile">
+                                <svg class="tile-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                Réel / Assujetti<br>(TVA facturée)
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">2. La Transaction</div>
+                <div class="inp-group">
+                    <span class="inp-label">Localisation du Client</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="geo" value="france" checked onchange="update()">
+                            <div class="radio-tile">France</div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="geo" value="ue" onchange="update()">
+                            <div class="radio-tile">Union Européenne</div>
+                        </label>
+                        <label class="radio-opt" style="grid-column: span 2;">
+                            <input type="radio" name="geo" value="world" onchange="update()">
+                            <div class="radio-tile">Hors UE (Export)</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="inp-group">
+                    <span class="inp-label">Type de Client</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="client" value="b2b" checked onchange="update()">
+                            <div class="radio-tile">Pro (B2B)</div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="client" value="b2c" onchange="update()">
+                            <div class="radio-tile">Particulier (B2C)</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="inp-group" id="nature-group" style="display:none;">
+                    <span class="inp-label">Nature de la vente (Crucial pour l'UE)</span>
+                    <div class="radio-grid">
+                        <label class="radio-opt">
+                            <input type="radio" name="nature" value="service" checked onchange="update()">
+                            <div class="radio-tile">Prestation<br>Service</div>
+                        </label>
+                        <label class="radio-opt">
+                            <input type="radio" name="nature" value="goods" onchange="update()">
+                            <div class="radio-tile">Vente de<br>Biens</div>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn-main" onclick="generatePDF()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Télécharger la fiche
+                </button>
+            </div>
+        </div>
+
+        <!-- RIGHT: RESULTS -->
+        <div class="result-col">
+            
+            <div class="preview-box" id="print-area">
+                <div class="preview-header">
+                    <div class="ph-title">Mentions TVA</div>
+                    <div class="ph-badge" id="case-badge">Cas Standard</div>
+                </div>
+
+                <div id="mentions-container">
+                    <!-- Injected via JS -->
+                </div>
+
+                <div style="margin-top:30px; padding-top:20px; border-top:2px solid var(--border);">
+                    <h3 style="font-size:1.1rem; margin-bottom:16px;">Checklist de Conformité</h3>
+                    <div class="cl-container" id="checklist-container">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div style="background:#FFFBEB; border:1px solid #FCD34D; padding:16px; border-radius:12px; color:#92400E; font-size:0.9rem;">
+                ⚠️ <strong>Attention :</strong> L'absence de mention obligatoire entraîne une amende de 15€ par mention manquante (plafonnée à 25% du montant de la facture).
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // DATA MATRIX
+        const TEXTS = {
+            franchise: {
+                mention: "TVA non applicable, art. 293 B du CGI.",
+                desc: "Obligatoire sur TOUTES vos factures si vous êtes en Franchise en Base (Micro).",
+                tva_line: "Aucune ligne de TVA. Total HT = Total Net à payer."
+            },
+            reel_fr: {
+                mention: "Taux de TVA : 20% (ou 10%, 5.5%).",
+                desc: "Affichez clairement le taux, le montant HT, le montant TVA et le TTC pour chaque ligne.",
+                tva_line: "Détail TVA obligatoire (Base HT x Taux = Montant)."
+            },
+            ue_b2b_service: {
+                mention: "Autoliquidation, art. 196 de la Directive 2006/112/CE.",
+                desc: "Vous ne facturez pas la TVA. Le client pro la déclare dans son pays.",
+                tva_line: "Total HT = Total Net. Pas de TVA."
+            },
+            ue_b2b_goods: {
+                mention: "Exonération de TVA, art. 138 de la Directive 2006/112/CE.",
+                desc: "Livraison Intracommunautaire exonérée.",
+                tva_line: "Total HT = Total Net. Pas de TVA."
+            },
+            export: {
+                mention: "Exonération de TVA, art. 262 I du CGI.",
+                desc: "Exportation hors UE. Valable pour biens et services.",
+                tva_line: "Total HT = Total Net. Pas de TVA."
+            },
+            b2c_ue: {
+                mention: "TVA française incluse (sauf OSS).",
+                desc: "Si vous êtes au réel, vous facturez la TVA française (sauf si vous dépassez le seuil OSS de 10k€/an).",
+                tva_line: "TVA 20% (ou autre) incluse."
+            }
+        };
+
+        // STATE
+        let state = {
+            regime: 'franchise',
+            geo: 'france',
+            client: 'b2b',
+            nature: 'service'
+        };
+
+        // INIT
+        function init() {
+            update();
+        }
+
+        // UPDATE LOGIC
+        function update() {
+            // Get inputs
+            state.regime = document.querySelector('input[name="regime"]:checked').value;
+            state.geo = document.querySelector('input[name="geo"]:checked').value;
+            state.client = document.querySelector('input[name="client"]:checked').value;
+            state.nature = document.querySelector('input[name="nature"]:checked').value;
+
+            // Show/Hide Nature group (Only relevant for UE)
+            document.getElementById('nature-group').style.display = (state.geo === 'ue') ? 'block' : 'none';
+
+            render();
+        }
+
+        function render() {
+            const container = document.getElementById('mentions-container');
+            const clContainer = document.getElementById('checklist-container');
+            const badge = document.getElementById('case-badge');
+            
+            container.innerHTML = '';
+            clContainer.innerHTML = '';
+
+            let mainTxt = {};
+            let checks = [];
+            let scenarioName = "";
+
+            // LOGIC TREE
+            if (state.regime === 'franchise') {
+                // FRANCHISE (Always "TVA non applicable" mostly)
+                mainTxt = TEXTS.franchise;
+                scenarioName = "Franchise en Base";
+                checks.push("Mention 'TVA non applicable...' présente.");
+                checks.push("Aucun taux ni montant de TVA n'apparaît.");
+                
+                if (state.geo === 'ue' && state.client === 'b2b') {
+                    // Franchise selling B2B UE -> Still needs "Autoliquidation" mention if Service? 
+                    // Actually, if Franchise, you don't charge VAT anyway. But for Services B2B UE, you must put "Autoliquidation".
+                    if (state.nature === 'service') {
+                        mainTxt = {
+                            mention: "TVA non applicable, art. 293 B du CGI.\nAutoliquidation.",
+                            desc: "Cumul des mentions : Franchise + Règle UE Services.",
+                            tva_line: "Pas de TVA."
+                        };
+                        checks.push("N° TVA Intracom du Client (OBLIGATOIRE).");
+                        checks.push("Votre N° TVA Intracom (Vous devez le demander).");
+                        checks.push("Déclaration DES (Douane) à faire.");
+                        scenarioName = "Franchise + UE B2B Service";
+                    } else {
+                        // Goods B2B UE Franchise -> Just Franchise mention. No VAT charged.
+                        scenarioName = "Franchise + UE B2B Biens";
+                        checks.push("Pas de TVA Intracom nécessaire si < 10k€ achats.");
+                    }
+                } else if (state.geo === 'world') {
+                    // Export Franchise
+                    scenarioName = "Franchise + Export";
+                    // Just Franchise mention covers it usually, but Export mention clarifies.
+                    mainTxt = {
+                        mention: "TVA non applicable, art. 293 B du CGI.\n(Exportation)",
+                        desc: "Mention franchise suffit, mais préciser Export est mieux.",
+                        tva_line: "Pas de TVA."
+                    };
+                }
+
+            } else {
+                // RÉEL (VAT Charged usually)
+                if (state.geo === 'france') {
+                    mainTxt = TEXTS.reel_fr;
+                    scenarioName = "Réel France";
+                    checks.push("Taux de TVA affiché pour chaque ligne.");
+                    checks.push("Votre N° TVA Intracom affiché.");
+                    if(state.client === 'b2b') checks.push("Mention indemnité 40€ pour retard.");
+                } 
+                else if (state.geo === 'ue') {
+                    if (state.client === 'b2b') {
+                        // Intra-Community Supply
+                        if (state.nature === 'service') {
+                            mainTxt = TEXTS.ue_b2b_service;
+                            scenarioName = "UE B2B Service";
+                            checks.push("Votre N° TVA + N° TVA Client.");
+                            checks.push("Déclaration DES obligatoire.");
+                        } else {
+                            mainTxt = TEXTS.ue_b2b_goods;
+                            scenarioName = "UE B2B Biens";
+                            checks.push("Votre N° TVA + N° TVA Client.");
+                            checks.push("Déclaration DEB/EMEBI.");
+                            checks.push("Preuve de transport hors France.");
+                        }
+                    } else {
+                        // B2C UE
+                        mainTxt = TEXTS.b2c_ue;
+                        scenarioName = "UE B2C";
+                        checks.push("Taux TVA Français appliqué (sauf OSS).");
+                    }
+                }
+                else {
+                    // WORLD (Export)
+                    mainTxt = TEXTS.export;
+                    scenarioName = "Export Hors UE";
+                    checks.push("Preuve de sortie du territoire (DAU, Transport).");
+                    checks.push("Aucune TVA facturée.");
+                }
+            }
+
+            // RENDER UI
+            badge.innerText = scenarioName;
+
+            // Render Mentions
+            const blockHtml = `
+                <div class="mention-block">
+                    <div class="mb-label">
+                        <span>Mention Légale à afficher</span>
+                        <button class="btn-copy" onclick="copyText('mt-1')">Copier</button>
+                    </div>
+                    <div class="mb-content" id="mt-1">${mainTxt.mention}</div>
+                </div>
+                
+                <div class="mention-block">
+                    <div class="mb-label">Traitement des lignes & Totaux</div>
+                    <div style="font-size:0.9rem; color:var(--text-main);">${mainTxt.tva_line}</div>
+                </div>
+            `;
+            container.innerHTML = blockHtml;
+
+            // Render Checklist
+            let clHtml = "";
+            checks.forEach(c => {
+                clHtml += `
+                    <div class="cl-item">
+                        <svg class="cl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <div class="cl-txt">${c}</div>
+                    </div>
+                `;
+            });
+            clContainer.innerHTML = clHtml;
+        }
+
+        // UTILS
+        function copyText(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector(`button[onclick="copyText('${id}')"]`);
+                btn.innerText = "Copié !";
+                setTimeout(() => btn.innerText = "Copier", 1500);
+            });
+        }
+
+        function generatePDF() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                const element = document.getElementById('print-area');
+                const opt = {
+                    margin: 10,
+                    filename: 'Fiscor_Mentions_TVA.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save().then(() => loader.style.display = 'none');
+            }, 1000);
+        }
+
+        init();
+
+    </script>
+</body>
+</html>

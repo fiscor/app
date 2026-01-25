@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="icon" type="image/png" href="bouclier.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fiscor - TVA Inverse & Marge</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- PDF Lib -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        :root {
+            --bg-main: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-subtle: #FAFAFA;
+            --text-main: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --accent: #7C3AED;
+            --accent-dark: #5B21B6;
+            --accent-light: #F5F3FF;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --radius: 16px;
+            --shadow-card: 0 4px 6px -1px rgba(124, 58, 237, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            max-width: 1200px; margin: 0 auto 40px auto; width: 100%;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.5rem; color: var(--text-main); }
+        .brand-icon {
+            width: 40px; height: 40px; background: var(--accent); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* Layout */
+        .workspace {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .calc-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+        .result-col { flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 24px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card); padding: 32px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow-card);
+        }
+        .card-title {
+            font-size: 1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--text-main); display: flex; align-items: center; gap: 8px;
+        }
+
+        /* Inputs */
+        .input-hero {
+            width: 100%; font-size: 2.5rem; font-weight: 800; color: var(--text-main);
+            border: none; border-bottom: 2px solid var(--border); padding: 10px 0;
+            margin-bottom: 24px; font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: border-color 0.2s; background: transparent;
+        }
+        .input-hero:focus { border-color: var(--accent); outline: none; }
+        .input-hero::placeholder { color: #E2E8F0; }
+
+        .rates-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
+        .rate-btn {
+            padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: white;
+            text-align: center; font-weight: 600; cursor: pointer; transition: 0.2s; color: var(--text-secondary);
+        }
+        .rate-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .rate-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        .inp-group { margin-bottom: 16px; }
+        .inp-label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+        .inp-field {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg-subtle); color: var(--text-main); font-size: 0.95rem; transition: 0.2s;
+        }
+        .inp-field:focus { border-color: var(--accent); background: white; outline: none; }
+
+        /* Breakdown Bar */
+        .breakdown-container { margin: 20px 0; }
+        .breakdown-bar {
+            height: 24px; width: 100%; display: flex; border-radius: 12px; overflow: hidden;
+            background: var(--bg-subtle); border: 1px solid var(--border);
+        }
+        .bd-segment { height: 100%; transition: width 0.5s ease; position: relative; }
+        .bd-cost { background: #94A3B8; } /* Cost */
+        .bd-margin { background: var(--success); } /* Margin */
+        .bd-tva { background: var(--accent); } /* VAT */
+        
+        .bd-legend { display: flex; gap: 16px; margin-top: 10px; justify-content: center; font-size: 0.8rem; font-weight: 600; }
+        .bd-legend-item { display: flex; align-items: center; gap: 6px; }
+        .bd-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        /* Result Big */
+        .result-ht-box {
+            text-align: center; margin-bottom: 30px; padding-bottom: 30px; border-bottom: 1px dashed var(--border);
+        }
+        .ht-label { font-size: 0.9rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; margin-bottom: 4px; }
+        .ht-value { font-size: 3.5rem; font-weight: 800; color: var(--accent); line-height: 1; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .ht-sub { font-size: 0.9rem; color: var(--text-secondary); margin-top: 8px; }
+
+        /* Detail Grid */
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; }
+        .detail-val { font-weight: 700; color: var(--text-main); }
+        .val-tva { color: var(--accent); }
+        .val-margin { color: var(--success); }
+        .val-cost { color: var(--text-secondary); }
+
+        /* History */
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .history-table th { text-align: left; font-size: 0.75rem; color: var(--text-secondary); border-bottom: 1px solid var(--border); padding: 8px; }
+        .history-table td { padding: 8px; border-bottom: 1px solid var(--bg-subtle); font-size: 0.9rem; }
+        .tag-rate { font-size: 0.75rem; background: var(--bg-subtle); padding: 2px 6px; border-radius: 4px; color: var(--text-secondary); font-weight: 600; }
+
+        /* Buttons */
+        .btn-add {
+            width: 100%; padding: 14px; background: white; color: var(--text-main); border: 1px solid var(--border);
+            border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 20px;
+        }
+        .btn-add:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-export {
+            padding: 8px 16px; background: var(--bg-subtle); border: 1px solid var(--border);
+            border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-main);
+        }
+        .btn-export:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid var(--accent-light);
+            border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px;
+        }
+        .loader-text { font-weight: 600; color: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Génération de la grille tarifaire...</div>
+    </div>
+
+    <div class="app-header">
+        <div class="brand"><div class="brand-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div> TVA INVERSE</div>
+    </div>
+
+    <div class="workspace">
+        
+        <!-- INPUTS -->
+        <div class="calc-col">
+            <div class="card">
+                <div class="card-title">1. Prix & Taux</div>
+                
+                <div style="position:relative;">
+                    <label style="font-size:0.8rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Prix TTC (Public)</label>
+                    <input type="number" id="input-ttc" class="input-hero" placeholder="0.00" oninput="calculate()">
+                    <span style="position:absolute; right:0; top:35px; font-size:1.5rem; color:var(--text-secondary); font-weight:300;">€</span>
+                </div>
+
+                <div class="rates-grid">
+                    <div class="rate-btn active" onclick="setRate(20)" id="rate-20">20%</div>
+                    <div class="rate-btn" onclick="setRate(10)" id="rate-10">10%</div>
+                    <div class="rate-btn" onclick="setRate(5.5)" id="rate-5.5">5.5%</div>
+                    <div class="rate-btn" onclick="setRate(2.1)" id="rate-2.1">2.1%</div>
+                </div>
+
+                <div class="inp-group">
+                    <label class="inp-label">Coût de Revient HT (Optionnel)</label>
+                    <input type="number" id="input-cost" class="inp-field" placeholder="Ex: coût achat, production..." oninput="calculate()">
+                    <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px;">Permet de calculer votre marge réelle.</div>
+                </div>
+
+                <button class="btn-add" onclick="addToHistory()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Ajouter au comparateur
+                </button>
+            </div>
+        </div>
+
+        <!-- RESULTS -->
+        <div class="result-col">
+            <div class="card">
+                <div class="card-title">
+                    <span>Résultat</span>
+                    <button class="btn-export" onclick="exportHistory()">Exporter PDF</button>
+                </div>
+
+                <div class="result-ht-box">
+                    <div class="ht-label">Votre Prix de Vente HT</div>
+                    <div class="ht-value" id="res-ht">0.00 €</div>
+                    <div class="ht-sub">C'est ce qui rentre vraiment dans votre CA.</div>
+                </div>
+
+                <div class="breakdown-container">
+                    <div class="breakdown-bar">
+                        <div class="bd-segment bd-cost" id="bar-cost" style="width:0%"></div>
+                        <div class="bd-segment bd-margin" id="bar-margin" style="width:70%"></div>
+                        <div class="bd-segment bd-tva" id="bar-tva" style="width:30%"></div>
+                    </div>
+                    <div class="bd-legend">
+                        <div class="bd-legend-item"><div class="bd-dot" style="background:#94A3B8"></div> Coût</div>
+                        <div class="bd-legend-item"><div class="bd-dot" style="background:var(--success)"></div> Marge</div>
+                        <div class="bd-legend-item"><div class="bd-dot" style="background:var(--accent)"></div> TVA</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:30px;">
+                    <div class="detail-row">
+                        <span>Montant TVA (à reverser)</span>
+                        <span class="detail-val val-tva" id="val-tva">0.00 €</span>
+                    </div>
+                    <div class="detail-row">
+                        <span>Coût de Revient</span>
+                        <span class="detail-val val-cost" id="val-cost">- 0.00 €</span>
+                    </div>
+                    <div class="detail-row" style="border-top:1px dashed var(--border); padding-top:12px; margin-top:12px;">
+                        <span style="font-weight:700;">Marge Nette Estimée</span>
+                        <span class="detail-val val-margin" style="font-size:1.1rem;" id="val-margin">0.00 €</span>
+                    </div>
+                    <div style="text-align:right; font-size:0.8rem; color:var(--text-secondary);" id="margin-pct">Taux de marge : 0%</div>
+                </div>
+
+                <!-- History List -->
+                <div style="margin-top:30px; border-top:2px solid var(--border); padding-top:20px;">
+                    <div style="font-weight:700; font-size:0.9rem; margin-bottom:10px;">Derniers Calculs</div>
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>TTC</th>
+                                <th>Taux</th>
+                                <th>HT</th>
+                                <th>Marge</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-list">
+                            <!-- JS Injected -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // STATE
+        let state = {
+            rate: 20,
+            ttc: 0,
+            cost: 0,
+            history: []
+        };
+
+        // INIT
+        function init() {
+            calculate();
+        }
+
+        // ACTIONS
+        function setRate(rate) {
+            state.rate = rate;
+            document.querySelectorAll('.rate-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('rate-' + rate).classList.add('active');
+            calculate();
+        }
+
+        function calculate() {
+            const ttcInput = parseFloat(document.getElementById('input-ttc').value);
+            const costInput = parseFloat(document.getElementById('input-cost').value);
+            
+            state.ttc = isNaN(ttcInput) ? 0 : ttcInput;
+            state.cost = isNaN(costInput) ? 0 : costInput;
+
+            // Math: HT = TTC / (1 + rate/100)
+            const ht = state.ttc / (1 + state.rate / 100);
+            const tva = state.ttc - ht;
+            const margin = ht - state.cost;
+            const marginPct = ht > 0 ? (margin / ht) * 100 : 0;
+
+            // Render Values
+            document.getElementById('res-ht').innerText = ht.toFixed(2) + ' €';
+            document.getElementById('val-tva').innerText = tva.toFixed(2) + ' €';
+            document.getElementById('val-cost').innerText = '- ' + state.cost.toFixed(2) + ' €';
+            
+            const marginEl = document.getElementById('val-margin');
+            marginEl.innerText = margin.toFixed(2) + ' €';
+            marginEl.style.color = margin >= 0 ? 'var(--success)' : 'var(--danger)';
+            
+            document.getElementById('margin-pct').innerText = `Taux de marge : ${marginPct.toFixed(1)}%`;
+
+            // Render Bar
+            if (state.ttc > 0) {
+                const total = state.ttc;
+                // Bar represents the TTC price composition
+                // But typically, Cost + Margin = HT. And HT + TVA = TTC.
+                // So bar = Cost + Margin + TVA.
+                // If Margin is negative, it's tricky to show on a stacked bar.
+                // Simplified visualization: relative to TTC.
+                
+                let wCost = (state.cost / total) * 100;
+                let wTva = (tva / total) * 100;
+                let wMargin = (margin / total) * 100;
+
+                if (margin < 0) {
+                    // Visual hack for negative margin: Margin 0, Cost eats into HT space?
+                    // Let's just clamp for simple visual
+                    wMargin = 0;
+                    wCost = ((ht) / total) * 100; // Show HT as cost approx
+                }
+
+                document.getElementById('bar-cost').style.width = wCost + '%';
+                document.getElementById('bar-tva').style.width = wTva + '%';
+                document.getElementById('bar-margin').style.width = wMargin + '%';
+            } else {
+                document.getElementById('bar-cost').style.width = '0%';
+                document.getElementById('bar-tva').style.width = '0%';
+                document.getElementById('bar-margin').style.width = '0%';
+            }
+        }
+
+        function addToHistory() {
+            if (state.ttc === 0) return;
+
+            const ht = state.ttc / (1 + state.rate / 100);
+            const margin = ht - state.cost;
+
+            state.history.unshift({
+                ttc: state.ttc,
+                rate: state.rate,
+                ht: ht,
+                margin: margin
+            });
+
+            if(state.history.length > 5) state.history.pop(); // Keep last 5
+
+            renderHistory();
+            
+            // Reset slightly
+            document.getElementById('input-ttc').value = '';
+            document.getElementById('input-ttc').focus();
+            calculate();
+        }
+
+        function renderHistory() {
+            const tbody = document.getElementById('history-list');
+            tbody.innerHTML = state.history.map(item => `
+                <tr>
+                    <td style="font-weight:700;">${item.ttc.toFixed(2)}</td>
+                    <td><span class="tag-rate">${item.rate}%</span></td>
+                    <td>${item.ht.toFixed(2)}</td>
+                    <td style="color:${item.margin >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:600;">${item.margin.toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function exportHistory() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+
+            setTimeout(() => {
+                // We export the whole right column card
+                const element = document.querySelector('.result-col .card');
+                const opt = {
+                    margin: 10,
+                    filename: 'Fiscor_Pricing_Simulation.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save().then(() => {
+                    loader.style.display = 'none';
+                });
+            }, 1200);
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
